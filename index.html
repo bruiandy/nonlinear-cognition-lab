@@ -1,0 +1,3176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="narrative">
+  <meta name="design-style" content="briefing">
+  <title>非线性认知画布 · Dr. Justin Sung 抗认知外包学习实验室</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=Noto+Sans+SC:wght@400;500;700&family=Source+Serif+4:wght@600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Page and surfaces: warm clinical canvas */
+      --background: #F7F6F2;
+      --surface-container-low: #FFFFFF;
+      --surface-container: #EFECE4;
+      --surface-container-high: #E5E1D6;
+
+      /* Ink */
+      --on-surface: #18181B;
+      --on-surface-variant: #52525B;
+
+      /* Rules */
+      --outline: #18181B;
+      --outline-variant: #D6D3C9;
+
+      /* Accents: Clinical Teal + Deep Indigo + Amber + Restrained Crimson */
+      --primary: #0F766E;
+      --on-primary: #FFFFFF;
+      --primary-container: #CCFBF1;
+      --on-primary-container: #115E59;
+      --secondary: #1E3A8A;
+      --secondary-container: #DBEAFE;
+      --tertiary: #B45309;
+      --amber: #D97706;
+      --amber-soft: #FEF3C7;
+      --error: #DC2626;
+      --error-text: #B91C1C;
+      --error-soft: #FEE2E2;
+      --on-error: #FFFFFF;
+
+      /* Semantic */
+      --positive: #0F766E;
+      --warning: #D97706;
+      --focus: #1E3A8A;
+
+      /* Data series */
+      --data-1: #0F766E;
+      --data-2: #D97706;
+      --data-3: #1E3A8A;
+      --data-4: #DC2626;
+      --data-context: #C4BFB2;
+
+      /* Typography */
+      --font-headline: 'Noto Serif SC', 'Source Serif 4', serif;
+      --font-body: 'Noto Sans SC', sans-serif;
+      --font-label: 'Geist Mono', 'Noto Sans SC', monospace;
+
+      --display-size: clamp(2.125rem, 1.4rem + 2.6vw, 3.35rem);
+      --headline-size: clamp(1.5rem, 1.15rem + 1.25vw, 2.125rem);
+      --subhead-size: clamp(1.125rem, 1.02rem + 0.45vw, 1.35rem);
+      --body-size: clamp(1rem, 0.96rem + 0.18vw, 1.0625rem);
+      --label-size: clamp(0.75rem, 0.72rem + 0.12vw, 0.8125rem);
+
+      /* Shape */
+      --rounded: 0.25rem;
+      --rounded-lg: 0.5rem;
+      --rounded-full: 9999px;
+
+      /* Style effects */
+      --section-rule: 1.5px solid var(--outline);
+      --card-border: 1px solid var(--outline-variant);
+      --sketch-border: 1.5px dashed var(--outline-variant);
+      --badge-radius: 3px;
+
+      /* Spacing scale */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 5.5rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      font-size: inherit;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .page-shell {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-2xl);
+    }
+    .page-shell * { min-width: 0; }
+
+    /* Dossier Header */
+    .masthead {
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-md);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .dossier-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: 1px solid var(--outline-variant);
+      padding-bottom: var(--space-sm);
+    }
+    .dossier-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .dossier-pill {
+      background: var(--on-surface);
+      color: var(--background);
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--badge-radius);
+    }
+    .dossier-pill.teal {
+      background: var(--primary);
+      color: var(--on-primary);
+    }
+    .dossier-pill.amber {
+      background: var(--amber);
+      color: var(--on-surface);
+    }
+    .dossier-meta {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+    .nav-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+    .nav-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--on-surface-variant);
+      padding: 0.45rem 0.75rem;
+      border-radius: var(--rounded);
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+    }
+    .nav-btn:hover {
+      background: var(--surface-container);
+      color: var(--on-surface);
+    }
+    .nav-btn.active {
+      background: var(--surface-container-low);
+      border-color: var(--outline-variant);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* Typography */
+    .display-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--display-size);
+      line-height: 1.15;
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .section-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--headline-size);
+      line-height: 1.2;
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .standfirst {
+      font-size: var(--subhead-size);
+      font-weight: 500;
+      color: var(--secondary);
+      margin: var(--space-sm) 0 0 0;
+      line-height: 1.45;
+    }
+    .prose {
+      max-width: 65ch;
+      color: var(--on-surface);
+      margin: 0;
+    }
+    .prose-muted {
+      color: var(--on-surface-variant);
+      font-size: 0.9375rem;
+      margin: 0;
+    }
+    .mono-num {
+      font-family: var(--font-label);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Section wrapper */
+    .module-section {
+      display: grid;
+      gap: var(--space-lg);
+      padding-top: var(--space-md);
+    }
+    .section-header-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-md);
+      border-top: var(--section-rule);
+      padding-top: var(--space-md);
+    }
+
+    /* Cards & Surfaces */
+    .card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+    }
+    .card-stone {
+      background: var(--surface-container);
+      border: 1px solid var(--outline-variant);
+      border-top: 2px solid var(--outline);
+      border-radius: var(--rounded);
+      padding: var(--space-md) var(--space-lg);
+    }
+    .sketch-callout {
+      background: var(--surface-container-low);
+      border: 1.5px dashed var(--secondary);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+      position: relative;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      min-height: 44px;
+      padding: 0.55rem 1.05rem;
+      border-radius: var(--rounded);
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out);
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary {
+      background: var(--primary);
+      color: var(--on-primary);
+    }
+    .btn-primary:hover {
+      background: var(--on-primary-container);
+    }
+    .btn-secondary {
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      border-color: var(--outline-variant);
+    }
+    .btn-secondary:hover {
+      background: var(--surface-container);
+      border-color: var(--outline);
+    }
+    .btn-indigo {
+      background: var(--secondary);
+      color: var(--on-primary);
+    }
+    .btn-indigo:hover {
+      box-shadow: 0 0 0 2px var(--secondary-container);
+    }
+    .btn-amber {
+      background: var(--amber-soft);
+      color: var(--tertiary);
+      border-color: var(--amber);
+    }
+    .btn-amber:hover {
+      background: var(--amber);
+      color: var(--on-surface);
+    }
+
+    /* Hero Section */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.28fr);
+      gap: var(--space-xl);
+      align-items: stretch;
+    }
+    .hero-thesis {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-lg);
+    }
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-sm);
+      border-top: 1px solid var(--outline-variant);
+      padding-top: var(--space-md);
+    }
+    .hero-stat-item {
+      display: grid;
+      gap: 2px;
+    }
+    .hero-stat-val {
+      font-family: var(--font-label);
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--primary);
+      font-variant-numeric: tabular-nums;
+    }
+    .hero-stat-lbl {
+      font-size: 0.8rem;
+      color: var(--on-surface-variant);
+    }
+    .chunk-canvas-wrap {
+      background: var(--surface-container-low);
+      border: 1.5px solid var(--outline);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md);
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .canvas-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: 1px solid var(--outline-variant);
+      padding-bottom: var(--space-sm);
+    }
+    .legend-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      font-size: 0.78rem;
+      color: var(--on-surface-variant);
+      align-items: center;
+    }
+    .legend-line {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .line-sample {
+      display: inline-block;
+      width: 22px;
+      height: 0;
+    }
+    .line-heavy { border-top: 3.5px solid var(--primary); }
+    .line-mid { border-top: 2px solid var(--secondary); }
+    .line-dash { border-top: 2px dashed var(--amber); }
+
+    .hero-svg-box {
+      width: 100%;
+      min-height: 360px;
+      background-image: radial-gradient(var(--outline-variant) 1px, transparent 1px);
+      background-size: 20px 20px;
+      border-radius: var(--rounded);
+      overflow: hidden;
+    }
+    .hero-svg-box svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .chunk-node {
+      cursor: pointer;
+      transition: transform var(--dur-micro) var(--ease-out);
+    }
+    .chunk-node:focus-visible {
+      outline: 2px solid var(--focus);
+    }
+    .chunk-node rect.node-bg {
+      transition: fill var(--dur-micro) var(--ease-out), stroke var(--dur-micro) var(--ease-out), stroke-width var(--dur-micro) var(--ease-out);
+    }
+    .chunk-node:hover rect.node-bg {
+      fill: var(--surface-container);
+    }
+    .chunk-node.active rect.node-bg {
+      fill: var(--primary-container);
+      stroke: var(--primary);
+      stroke-width: 2.5px;
+    }
+    .node-inspector-bar {
+      background: var(--surface-container);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+
+    /* Diagnostic Hub */
+    .diagnostic-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+    .symptom-pills {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+      gap: var(--space-sm);
+    }
+    .symptom-btn {
+      text-align: left;
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      cursor: pointer;
+      display: grid;
+      gap: 4px;
+      min-height: 44px;
+      transition: background-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+    }
+    .symptom-btn:hover {
+      background: var(--surface-container);
+    }
+    .symptom-btn.active {
+      background: var(--primary-container);
+      box-shadow: inset 0 0 0 2px var(--primary);
+      border-color: var(--primary);
+    }
+    .symptom-title {
+      font-weight: 700;
+      color: var(--on-surface);
+      font-size: 0.95rem;
+    }
+    .symptom-desc {
+      font-size: 0.82rem;
+      color: var(--on-surface-variant);
+      line-height: 1.4;
+    }
+    .sliders-stack {
+      display: grid;
+      gap: var(--space-md);
+      margin-top: var(--space-md);
+    }
+    .slider-row {
+      display: grid;
+      gap: 6px;
+    }
+    .slider-label-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: var(--space-sm);
+    }
+    .slider-label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--on-surface);
+    }
+    .slider-hint {
+      font-size: 0.78rem;
+      color: var(--on-surface-variant);
+    }
+    .slider-val {
+      font-family: var(--font-label);
+      font-weight: 600;
+      color: var(--primary);
+      font-size: 0.9rem;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+      cursor: pointer;
+      height: 28px;
+    }
+    .radar-wrap {
+      display: grid;
+      gap: var(--space-md);
+    }
+    .radar-svg-box {
+      min-height: 290px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .prescription-box {
+      border-left: 4px solid var(--primary);
+      background: var(--surface-container);
+      padding: var(--space-md);
+      border-radius: 0 var(--rounded) var(--rounded) 0;
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .prescription-box.alert-mode {
+      border-left-color: var(--error);
+    }
+    .rx-steps {
+      display: grid;
+      gap: var(--space-xs);
+      margin-top: var(--space-xs);
+    }
+    .rx-step-btn {
+      text-align: left;
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: 0.55rem 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      min-height: 44px;
+      font-size: 0.875rem;
+      color: var(--on-surface);
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .rx-step-btn:hover {
+      background: var(--primary-container);
+    }
+
+    /* Module Overview Cards (always exposed in scroll flow) */
+    .module-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+    .module-card {
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-top: 3px solid var(--secondary);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+      display: grid;
+      gap: var(--space-xs);
+      cursor: pointer;
+      text-align: left;
+      transition: background-color var(--dur-micro) var(--ease-out), box-shadow var(--dur-micro) var(--ease-out);
+    }
+    .module-card:hover {
+      background: var(--surface-container);
+    }
+    .module-card.active {
+      border-top-color: var(--primary);
+      box-shadow: inset 0 0 0 1.5px var(--primary);
+      background: var(--surface-container-low);
+    }
+    .module-idx {
+      font-family: var(--font-label);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .module-card-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--on-surface);
+    }
+
+    /* 3-Column Concentric Layering Workspace */
+    .layering-studio {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.65fr) minmax(260px, 0.95fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+    .anchor-sidebar, .prompt-sidebar {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .minimap-box {
+      background: var(--background);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: var(--space-sm);
+    }
+    .topic-anchor-list {
+      display: grid;
+      gap: 6px;
+    }
+    .topic-anchor-btn {
+      text-align: left;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: var(--rounded);
+      padding: 0.55rem 0.65rem;
+      min-height: 44px;
+      cursor: pointer;
+      display: grid;
+      gap: 2px;
+      color: var(--on-surface);
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .topic-anchor-btn:hover {
+      background: var(--surface-container);
+    }
+    .topic-anchor-btn.active {
+      background: var(--primary-container);
+      border-color: var(--primary);
+      color: var(--on-primary-container);
+      font-weight: 700;
+    }
+    .topic-tag {
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      color: var(--on-surface-variant);
+    }
+
+    /* Center Reading Canvas */
+    .reading-canvas {
+      background: var(--surface-container-low);
+      border: 1.5px solid var(--outline);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-lg);
+    }
+    .layer-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      border-bottom: 1px solid var(--outline-variant);
+      padding-bottom: var(--space-md);
+    }
+    .layer-tab-btn {
+      background: var(--surface-container);
+      border: 1px solid var(--outline-variant);
+      color: var(--on-surface);
+      padding: 0.5rem 0.85rem;
+      border-radius: var(--rounded);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.86rem;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+    }
+    .layer-tab-btn:hover {
+      background: var(--surface-container-high);
+    }
+    .layer-tab-btn.active {
+      background: var(--on-surface);
+      color: var(--background);
+      border-color: var(--on-surface);
+    }
+    .layer-block {
+      display: grid;
+      gap: var(--space-md);
+      padding: var(--space-md);
+      border-radius: var(--rounded);
+      border: 1px solid var(--outline-variant);
+      background: var(--background);
+    }
+    .layer-block.l1 { border-left: 4px solid var(--primary); }
+    .layer-block.l2 { border-left: 4px solid var(--secondary); }
+    .layer-block.l3 { border-left: 4px solid var(--amber); }
+
+    .layer-badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+    .layer-kicker {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: 0.78rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--badge-radius);
+    }
+    .kicker-l1 { background: var(--primary-container); color: var(--on-primary-container); }
+    .kicker-l2 { background: var(--secondary-container); color: var(--secondary); }
+    .kicker-l3 { background: var(--amber-soft); color: var(--tertiary); }
+
+    /* Earn the Response Thinking Friction Card */
+    .earn-card {
+      background: var(--surface-container);
+      border: 1.5px dashed var(--amber);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .earn-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      color: var(--tertiary);
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+    .earn-question {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1.08rem;
+      color: var(--on-surface);
+      margin: 0;
+    }
+    .field-group {
+      display: grid;
+      gap: 6px;
+    }
+    .field-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--on-surface-variant);
+    }
+    .text-input, .textarea-input {
+      width: 100%;
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: 0.6rem 0.75rem;
+      color: var(--on-surface);
+      font-size: 0.92rem;
+    }
+    .text-input:focus, .textarea-input:focus {
+      border-color: var(--primary);
+      outline: 2px solid var(--primary-container);
+    }
+
+    /* Prompt Sidebar */
+    .prompt-card {
+      background: var(--background);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      display: grid;
+      gap: var(--space-sm);
+    }
+    .prompt-card-rule {
+      font-size: 0.78rem;
+      padding: 0.35rem 0.55rem;
+      border-radius: var(--rounded);
+      background: var(--amber-soft);
+      color: var(--tertiary);
+      font-weight: 600;
+    }
+    .prompt-card-rule.danger {
+      background: var(--error-soft);
+      color: var(--error-text);
+    }
+    .prompt-code {
+      font-family: var(--font-body);
+      font-size: 0.84rem;
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: 0.65rem;
+      color: var(--on-surface);
+      white-space: pre-wrap;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* AI Boundary Simulator & Tool Audit */
+    .boundary-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+    .curve-svg-box {
+      min-height: 290px;
+      width: 100%;
+    }
+    .preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+    .preset-chip {
+      background: var(--surface-container);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: 0.4rem 0.7rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px;
+      color: var(--on-surface);
+    }
+    .preset-chip:hover { background: var(--surface-container-high); }
+    .preset-chip.active {
+      background: var(--secondary);
+      color: var(--on-primary);
+      border-color: var(--secondary);
+    }
+    .tool-audit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(270px, 100%), 1fr));
+      gap: var(--space-md);
+    }
+    .tool-card {
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md);
+      display: grid;
+      gap: var(--space-sm);
+      align-content: start;
+    }
+    .tool-verdict {
+      font-family: var(--font-label);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.15rem 0.45rem;
+      border-radius: var(--badge-radius);
+      display: inline-block;
+      width: fit-content;
+    }
+    .verdict-good { background: var(--primary-container); color: var(--on-primary-container); }
+    .verdict-caution { background: var(--amber-soft); color: var(--tertiary); }
+    .verdict-bad { background: var(--error-soft); color: var(--error-text); }
+
+    /* Case Clinic Audit Section */
+    .case-tabs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+      gap: var(--space-sm);
+    }
+    .case-tab-btn {
+      text-align: left;
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded);
+      padding: var(--space-md);
+      cursor: pointer;
+      display: grid;
+      gap: 3px;
+      min-height: 44px;
+    }
+    .case-tab-btn:hover { background: var(--surface-container); }
+    .case-tab-btn.active {
+      background: var(--secondary-container);
+      border-color: var(--secondary);
+      box-shadow: inset 0 0 0 1.5px var(--secondary);
+    }
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-lg);
+    }
+    .compare-panel {
+      background: var(--surface-container-low);
+      border: 1px solid var(--outline-variant);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: grid;
+      gap: var(--space-md);
+      align-content: start;
+    }
+    .compare-panel.before { border-top: 4px solid var(--error); }
+    .compare-panel.after { border-top: 4px solid var(--primary); }
+    .symptom-note {
+      background: var(--error-soft);
+      color: var(--error-text);
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--rounded);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .reconstruct-note {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--rounded);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* Footer */
+    .site-footer {
+      border-top: var(--section-rule);
+      padding-top: var(--space-lg);
+      padding-bottom: var(--space-xl);
+      display: grid;
+      gap: var(--space-md);
+    }
+    .footer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+    .inline-toast {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      min-height: 1.4em;
+    }
+
+    /* Container queries & Responsive */
+    .card-wrapper { container-type: inline-size; }
+
+    @media (max-width: 1080px) {
+      .hero-grid, .diagnostic-grid, .boundary-grid {
+        grid-template-columns: 1fr;
+      }
+      .layering-studio {
+        grid-template-columns: 1fr;
+      }
+      .compare-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 640px) {
+      .page-shell {
+        padding: var(--space-md);
+        gap: var(--space-xl);
+      }
+      .hero-stats {
+        grid-template-columns: 1fr;
+      }
+      .card, .reading-canvas, .compare-panel {
+        padding: var(--space-md);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <!-- Static Editorial Dossier Header -->
+    <header class="masthead">
+      <div class="dossier-bar">
+        <div class="dossier-left">
+          <span class="dossier-pill">DR. JUSTIN SUNG · 认知实验室</span>
+          <span class="dossier-pill teal">NON-LINEAR COGNITIVE CANVAS</span>
+          <span class="dossier-meta">反认知外包 × 高阶认知架构 × 同心圆分层掌握</span>
+        </div>
+        <div class="dossier-meta mono-num" id="progress-status">已解锁思考节点 0 / 6 · 诊断待完成</div>
+      </div>
+      <div class="nav-strip">
+        <nav class="nav-links" aria-label="核心模块导航">
+          <button type="button" class="nav-btn active" onclick="scrollToSection('hero-map', this)">
+            <i data-lucide="network" width="16" height="16"></i> 全景概念网络
+          </button>
+          <button type="button" class="nav-btn" onclick="scrollToSection('diagnostic-hub', this)">
+            <i data-lucide="stethoscope" width="16" height="16"></i> 临床诊断问诊
+          </button>
+          <button type="button" class="nav-btn" onclick="scrollToSection('layering-lab', this)">
+            <i data-lucide="layers" width="16" height="16"></i> 同心圆分层工作台
+          </button>
+          <button type="button" class="nav-btn" onclick="scrollToSection('ai-boundary-lab', this)">
+            <i data-lucide="shield-alert" width="16" height="16"></i> AI 边界与工具审计
+          </button>
+          <button type="button" class="nav-btn" onclick="scrollToSection('clinic-audit', this)">
+            <i data-lucide="git-compare" width="16" height="16"></i> 真实案例拆解室
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Hero Section: Interactive Core Concept Chunk Map -->
+    <section id="hero-map" class="hero-grid" aria-label="核心概念网络图">
+      <div class="hero-thesis">
+        <div>
+          <span class="dossier-pill amber">AI 时代反认知退化指南</span>
+          <h1 class="display-title" style="margin-top: var(--space-sm);">别让 AI 替你思考：<br>重建大脑的非线性认知画布</h1>
+          <p class="standfirst">
+            前临床医生与学习科学家 Dr. Justin Sung 13 年一线教学蒸馏：拒绝伪勤奋的线性瀑布笔记，用「组块网络」与「合意困难」抵御学习幻觉。
+          </p>
+          <p class="prose" style="margin-top: var(--space-md);">
+            绝大多数人把「看懂了 AI 写的摘要」误当成「大脑学会了」。真正的学习发生在信息进入大脑后的<strong>高阶编码（Deep Processing）</strong>——比较、权衡、分组与建立因果网络。你可以把 AI 当成省时的助手，但绝不能把思考的重担外包给它。
+          </p>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: var(--space-sm);">
+          <button type="button" class="btn btn-primary" onclick="scrollToSection('diagnostic-hub')">
+            <i data-lucide="activity" width="17" height="17"></i> 开始 30 秒临床学习诊断
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="scrollToSection('layering-lab')">
+            <i data-lucide="compass" width="17" height="17"></i> 直接进入 L1–L3 分层精读
+          </button>
+        </div>
+
+        <div class="hero-stats">
+          <div class="hero-stat-item">
+            <span class="hero-stat-val">2–4 组块</span>
+            <span class="hero-stat-lbl">单节点严格分组上限</span>
+          </div>
+          <div class="hero-stat-item">
+            <span class="hero-stat-val">L1 → L4</span>
+            <span class="hero-stat-lbl">同心圆逆线性掌握顺序</span>
+          </div>
+          <div class="hero-stat-item">
+            <span class="hero-stat-val">50% 阈值</span>
+            <span class="hero-stat-lbl">专注度跌破即停诊止损</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chunk-canvas-wrap">
+        <div class="canvas-toolbar">
+          <span class="dossier-meta" style="font-weight: 600; color: var(--on-surface);">交互式组块地图（Chunk Map · 点击节点展开主题）</span>
+          <div class="legend-inline">
+            <span class="legend-line"><span class="line-sample line-heavy"></span> 核心因果主干</span>
+            <span class="legend-line"><span class="line-sample line-mid"></span> 结构支撑</span>
+            <span class="legend-line"><span class="line-sample line-dash"></span> 校准反馈环</span>
+          </div>
+        </div>
+
+        <div class="hero-svg-box">
+          <svg viewBox="0 0 740 410" role="img" aria-label="Justin Sung 核心认知体系组块网络图，线条无交叉，粗细代表关系权重">
+            <defs>
+              <marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--primary)"/>
+              </marker>
+              <marker id="arrow-indigo" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--secondary)"/>
+              </marker>
+              <marker id="arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--amber)"/>
+              </marker>
+            </defs>
+
+            <!-- Hand-drawn sketch aura ring around core anchor -->
+            <ellipse cx="370" cy="205" rx="116" ry="52" fill="none" stroke="var(--amber)" stroke-width="1.5" stroke-dasharray="6 5" opacity="0.65" aria-hidden="true"/>
+            <text x="370" y="143" text-anchor="middle" font-size="11" fill="var(--tertiary)" font-family="var(--font-label)">手绘草图原则：线条不交叉 · 空间即距离</text>
+
+            <!-- Non-crossing weighted edges from Central Core (370, 205) to 4 primary branches -->
+            <!-- Top-Left: Diagnostic Hub -->
+            <path d="M 272 182 C 235 160, 210 135, 175 112" fill="none" stroke="var(--primary)" stroke-width="3.5" marker-end="url(#arrow-teal)"/>
+            <!-- Top-Right: M1 AI Boundary -->
+            <path d="M 468 182 C 505 160, 530 135, 565 112" fill="none" stroke="var(--primary)" stroke-width="3.5" marker-end="url(#arrow-teal)"/>
+            <!-- Bottom-Left: M2 Cognitive Architecture -->
+            <path d="M 272 228 C 235 250, 210 275, 175 298" fill="none" stroke="var(--secondary)" stroke-width="3.2" marker-end="url(#arrow-indigo)"/>
+            <!-- Bottom-Right: M3 AI Workflows -->
+            <path d="M 468 228 C 505 250, 530 275, 565 298" fill="none" stroke="var(--secondary)" stroke-width="3.2" marker-end="url(#arrow-indigo)"/>
+
+            <!-- Feedback loop bottom: M4 Audit & Clinic connects M2 & M3 cleanly without crossing -->
+            <path d="M 190 345 C 250 375, 290 375, 315 365" fill="none" stroke="var(--amber)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrow-amber)"/>
+            <path d="M 550 345 C 490 375, 450 375, 425 365" fill="none" stroke="var(--amber)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrow-amber)"/>
+
+            <!-- Sub-branch satellites (strictly <= 2 per branch, clean outer positions) -->
+            <line x1="115" y1="70" x2="115" y2="46" stroke="var(--outline-variant)" stroke-width="1.5"/>
+            <rect x="35" y="18" width="160" height="28" rx="4" fill="var(--surface-container)" stroke="var(--outline-variant)"/>
+            <text x="115" y="36" text-anchor="middle" font-size="11.5" fill="var(--on-surface-variant)">五维属性 · 速率瓶颈</text>
+
+            <line x1="615" y1="70" x2="615" y2="46" stroke="var(--outline-variant)" stroke-width="1.5"/>
+            <rect x="525" y="18" width="180" height="28" rx="4" fill="var(--error-soft)" stroke="var(--error)"/>
+            <text x="615" y="36" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--error-text)">警示：认知绕过与学习幻觉</text>
+
+            <!-- Central Core Node -->
+            <g class="chunk-node active" id="hero-node-core" tabindex="0" role="button" onclick="selectHeroNode('core')" onkeydown="if(event.key==='Enter'||event.key===' ')selectHeroNode('core')">
+              <rect class="node-bg" x="268" y="168" width="204" height="74" rx="8" fill="var(--primary-container)" stroke="var(--primary)" stroke-width="2.5"/>
+              <text x="370" y="196" text-anchor="middle" font-size="15" font-weight="700" fill="var(--on-surface)" font-family="var(--font-headline)">高阶认知架构 (Schema)</text>
+              <text x="370" y="218" text-anchor="middle" font-size="11.5" fill="var(--on-primary-container)">深层编码 × 合意困难 × 抗外包</text>
+            </g>
+
+            <!-- Node 1: Diagnostic Hub -->
+            <g class="chunk-node" id="hero-node-diag" tabindex="0" role="button" onclick="selectHeroNode('diag')" onkeydown="if(event.key==='Enter'||event.key===' ')selectHeroNode('diag')">
+              <rect class="node-bg" x="24" y="70" width="192" height="64" rx="6" fill="var(--surface-container-low)" stroke="var(--outline)" stroke-width="1.5"/>
+              <text x="120" y="96" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--on-surface)">00 · 学习瓶颈问诊</text>
+              <text x="120" y="116" text-anchor="middle" font-size="11" fill="var(--on-surface-variant)">Diagnostic Hub &amp; 雷达自评</text>
+            </g>
+
+            <!-- Node 2: M1 AI Boundary -->
+            <g class="chunk-node" id="hero-node-m1" tabindex="0" role="button" onclick="selectHeroNode('m1')" onkeydown="if(event.key==='Enter'||event.key===' ')selectHeroNode('m1')">
+              <rect class="node-bg" x="524" y="70" width="192" height="64" rx="6" fill="var(--surface-container-low)" stroke="var(--outline)" stroke-width="1.5"/>
+              <text x="620" y="96" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--on-surface)">M1 · AI 边界与防退化</text>
+              <text x="620" y="116" text-anchor="middle" font-size="11" fill="var(--on-surface-variant)">省时间 ≠ 省脑力 · 风险曲线</text>
+            </g>
+
+            <!-- Node 3: M2 Cognitive Architecture -->
+            <g class="chunk-node" id="hero-node-m2" tabindex="0" role="button" onclick="selectHeroNode('m2')" onkeydown="if(event.key==='Enter'||event.key===' ')selectHeroNode('m2')">
+              <rect class="node-bg" x="24" y="280" width="192" height="64" rx="6" fill="var(--surface-container-low)" stroke="var(--outline)" stroke-width="1.5"/>
+              <text x="120" y="306" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--on-surface)">M2 · 组块与分层建构</text>
+              <text x="120" y="326" text-anchor="middle" font-size="11" fill="var(--on-surface-variant)">2-4 法则 × L1-L4 同心圆</text>
+            </g>
+
+            <!-- Node 4: M3 AI Workflows -->
+            <g class="chunk-node" id="hero-node-m3" tabindex="0" role="button" onclick="selectHeroNode('m3')" onkeydown="if(event.key==='Enter'||event.key===' ')selectHeroNode('m3')">
+              <rect class="node-bg" x="524" y="280" width="192" height="64" rx="6" fill="var(--surface-container-low)" stroke="var(--outline)" stroke-width="1.5"/>
+              <text x="620" y="306" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--on-surface)">M3 · AI 协同工作流</text>
+              <text x="620" y="326" text-anchor="middle" font-size="11" fill="var(--on-surface-variant)">关键词跳板 · 学习指南 · 回音壁</text>
+            </g>
+
+            <!-- Node 5: M4 Case Audit -->
+            <g class="chunk-node" id="hero-node-m4" tabindex="0" role="button" onclick="selectHeroNode('m4')" onkeydown="if(event.key==='Enter'||event.key===' ')selectHeroNode('m4')">
+              <rect class="node-bg" x="285" y="336" width="170" height="54" rx="6" fill="var(--surface-container-low)" stroke="var(--amber)" stroke-width="1.8"/>
+              <text x="370" y="360" text-anchor="middle" font-size="13" font-weight="700" fill="var(--on-surface)">M4 · 真实案例拆解室</text>
+              <text x="370" y="378" text-anchor="middle" font-size="11" fill="var(--tertiary)">线性笔记 vs 高阶网图对比</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="node-inspector-bar" id="hero-inspector">
+          <div style="max-width: 56ch;">
+            <div class="dossier-meta" style="color: var(--primary); font-weight: 700;" id="hero-node-tag">CORE ANCHOR · 认知网络核心</div>
+            <div style="font-weight: 700; margin-top: 2px;" id="hero-node-title">高阶认知架构（Schema）：所有记忆与迁移的物理容器</div>
+            <p class="prose-muted" style="margin-top: 2px;" id="hero-node-desc">
+              大脑只保留能嵌入已有网络的信息。点击图中任意模块节点，查看它在整个反认知外包体系中的权重与行动入口。
+            </p>
+          </div>
+          <button type="button" class="btn btn-indigo" id="hero-node-cta" onclick="jumpFromHero()">
+            进入对应工作区 <i data-lucide="arrow-right" width="16" height="16"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Entrance Layer: Diagnostic Hub -->
+    <section id="diagnostic-hub" class="module-section" aria-label="学习瓶颈与 AI 依赖度诊断中心">
+      <div class="section-header-bar">
+        <div>
+          <span class="dossier-pill teal">00 · DIAGNOSTIC HUB</span>
+          <h2 class="section-title" style="margin-top: var(--space-xs);">临床学习问诊：定位你的最大速率瓶颈（Rate Limiter）</h2>
+          <p class="prose-muted" style="margin-top: 4px;">
+            模仿前医生「望闻问切」视角：在盲目更换 App 前，先诊断你的主要症状与五维能力短板，生成专属策展路径。
+          </p>
+        </div>
+      </div>
+
+      <div class="diagnostic-grid">
+        <div class="card">
+          <div class="dossier-meta" style="color: var(--secondary); font-weight: 700; margin-bottom: var(--space-sm);">STEP 1 · 选择当前最困扰你的学习症状</div>
+          <div class="symptom-pills" role="group" aria-label="选择核心痛点">
+            <button type="button" class="symptom-btn active" id="sym-ai-overload" onclick="selectSymptom('ai-overload')">
+              <span class="symptom-title">AI 信息过载与依赖</span>
+              <span class="symptom-desc">用 AI 总结了很多长文/资料，感觉懂了，合上屏幕却无法独自解决复杂问题。</span>
+            </button>
+            <button type="button" class="symptom-btn" id="sym-illusion" onclick="selectSymptom('illusion')">
+              <span class="symptom-title">看完就忘 · 学习幻觉</span>
+              <span class="symptom-desc">反复阅读笔记、刷闪卡或画荧光笔，考试/实战时仍感觉大脑空白。</span>
+            </button>
+            <button type="button" class="symptom-btn" id="sym-linear" onclick="selectSymptom('linear')">
+              <span class="symptom-title">缺乏体系 · 线性笔记困局</span>
+              <span class="symptom-desc">按教材顺序抄写大量完整句子，知识零散孤立，遇到跨章节题目就失灵。</span>
+            </button>
+          </div>
+
+          <div class="dossier-meta" style="color: var(--secondary); font-weight: 700; margin-top: var(--space-lg);">STEP 2 · 评估你的学习五维属性（1 = 薄弱，10 = 高阶）</div>
+          <div class="sliders-stack">
+            <div class="slider-row">
+              <div class="slider-label-line">
+                <label class="slider-label" for="dim-processing">1. 深度处理（Deep Processing）<span class="slider-hint"> — 比较、找规律与编织网络</span></label>
+                <span class="slider-val" id="val-processing">4 / 10</span>
+              </div>
+              <input type="range" id="dim-processing" min="1" max="10" value="4" oninput="updateDimension('processing', this.value)">
+            </div>
+            <div class="slider-row">
+              <div class="slider-label-line">
+                <label class="slider-label" for="dim-regulation">2. 自我调节（Self-Regulation）<span class="slider-hint"> — 发现知识缺口与盲区偏见</span></label>
+                <span class="slider-val" id="val-regulation">5 / 10</span>
+              </div>
+              <input type="range" id="dim-regulation" min="1" max="10" value="5" oninput="updateDimension('regulation', this.value)">
+            </div>
+            <div class="slider-row">
+              <div class="slider-label-line">
+                <label class="slider-label" for="dim-mindset">3. 心态与合意困难（Mindset）<span class="slider-hint"> — 忍受困惑而非立刻找 AI 投喂</span></label>
+                <span class="slider-val" id="val-mindset">3 / 10</span>
+              </div>
+              <input type="range" id="dim-mindset" min="1" max="10" value="3" oninput="updateDimension('mindset', this.value)">
+            </div>
+            <div class="slider-row">
+              <div class="slider-label-line">
+                <label class="slider-label" for="dim-management">4. 注意力管理（Self-Management）<span class="slider-hint"> — 50% 专注阈值止损与优先级</span></label>
+                <span class="slider-val" id="val-management">6 / 10</span>
+              </div>
+              <input type="range" id="dim-management" min="1" max="10" value="6" oninput="updateDimension('management', this.value)">
+            </div>
+            <div class="slider-row">
+              <div class="slider-label-line">
+                <label class="slider-label" for="dim-retrieval">5. 高阶检索（Retrieval Practice）<span class="slider-hint"> — 闭卷重构与真实场景应用</span></label>
+                <span class="slider-val" id="val-retrieval">5 / 10</span>
+              </div>
+              <input type="range" id="dim-retrieval" min="1" max="10" value="5" oninput="updateDimension('retrieval', this.value)">
+            </div>
+          </div>
+        </div>
+
+        <div class="card radar-wrap">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-sm);">
+            <span class="dossier-meta" style="font-weight: 700; color: var(--on-surface);">五维认知雷达图 vs Top 1% 基准线</span>
+            <span class="dossier-pill amber" id="diag-score-badge">综合认知指数 46 / 100</span>
+          </div>
+
+          <div class="radar-svg-box">
+            <svg id="radar-svg" viewBox="0 0 360 300" style="width: 100%; max-width: 360px; height: auto;" role="img" aria-label="学习五维属性雷达图"></svg>
+          </div>
+
+          <div class="prescription-box" id="prescription-box">
+            <div class="dossier-meta" style="font-weight: 700; color: var(--error-text);" id="rx-limiter-tag">诊断结果：最大速率瓶颈 = 心态与合意困难（AI 认知绕过风险高）</div>
+            <div style="font-weight: 700; font-size: 1.02rem;" id="rx-headline">你正用「借来的清晰度」掩盖「缺失的编码过程」</div>
+            <p class="prose-muted" id="rx-body">
+              当遇到高密度信息时，过早向 LLM 索取简化总结会绕过大脑的 Schema 建构。当前最紧迫的不是找新笔记软件，而是重建 AI 边界与 L1-L2 组块习惯。
+            </p>
+            <div class="dossier-meta" style="color: var(--on-surface); font-weight: 700; margin-top: 4px;">专属策展学习路径（点击直达对应模块）：</div>
+            <div class="rx-steps" id="rx-steps-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modules 1-3 Concentric Layering Studio -->
+    <section id="layering-lab" class="module-section" aria-label="同心圆分层核心知识工作台">
+      <div class="section-header-bar">
+        <div>
+          <span class="dossier-pill">CORE MODULES 01–03 · CONCENTRIC LAYERING</span>
+          <h2 class="section-title" style="margin-top: var(--space-xs);">三栏同心圆分层工作台：从全景骨架到高阶机理</h2>
+          <p class="prose-muted" style="margin-top: 4px;">
+            遵循「同心圆分层掌握法（Concentric Layering）」：左侧锚定空间位置，中间按 L1→L2→L3 逐层推进（核心结论前设有「挣得答案」思考阻尼），右侧直接调用合规 AI 提示词。
+          </p>
+        </div>
+      </div>
+
+      <!-- Exposed Module Overview Strip -->
+      <div class="module-overview-grid">
+        <button type="button" class="module-card active" id="mod-card-m1" onclick="selectModuleTopic('m1-bypass')">
+          <span class="module-idx">MODULE 01 · THE AI BOUNDARY</span>
+          <span class="module-card-title">AI 时代的生存与大脑防退化</span>
+          <span class="prose-muted">区分「省时间」与「省脑力」，识别流畅性带来的学习幻觉与认知绕过陷阱。</span>
+        </button>
+        <button type="button" class="module-card" id="mod-card-m2" onclick="selectModuleTopic('m2-chunk')">
+          <span class="module-idx">MODULE 02 · COGNITIVE ARCHITECTURE</span>
+          <span class="module-card-title">高阶认知与组块网络建构</span>
+          <span class="prose-muted">组块地图 2–4 法则、空间即意义、相关性锚点，以及逆线性同心圆分层阅读法。</span>
+        </button>
+        <button type="button" class="module-card" id="mod-card-m3" onclick="selectModuleTopic('m3-keywords')">
+          <span class="module-idx">MODULE 03 · AI-ASSISTED WORKFLOWS</span>
+          <span class="module-card-title">AI 协同实战工作流与提示词库</span>
+          <span class="prose-muted">3 分钟无序关键词跳板、开启 NotebookLM 学习指南模式、用 AI 做严苛回音壁。</span>
+        </button>
+      </div>
+
+      <!-- 3-Column Concentric Layering Layout -->
+      <div class="layering-studio">
+        <!-- Left Column: Spatial Anchor Minimap -->
+        <aside class="anchor-sidebar" aria-label="空间锚点小地图">
+          <div>
+            <div class="dossier-meta" style="font-weight: 700; color: var(--on-surface);">空间锚点小地图</div>
+            <p class="prose-muted" style="font-size: 0.8rem; margin-top: 2px;">先定坐标，再填细节（Order Control 对抗线性阅读）</p>
+          </div>
+
+          <div class="minimap-box">
+            <svg id="minimap-svg" viewBox="0 0 220 180" style="width: 100%; height: auto; display: block;" role="img" aria-label="同心圆分层空间坐标小地图"></svg>
+          </div>
+
+          <div class="dossier-meta" style="font-weight: 700; color: var(--secondary);">选择策展主题节点</div>
+          <div class="topic-anchor-list" id="topic-anchor-list"></div>
+        </aside>
+
+        <!-- Center Column: Concentric Layering Reader -->
+        <div class="reading-canvas">
+          <div>
+            <div class="dossier-meta" id="active-topic-kicker" style="color: var(--primary); font-weight: 700;">MODULE 01 · 核心主题</div>
+            <h3 class="section-title" id="active-topic-title" style="font-size: 1.5rem; margin-top: 2px;">认知绕过（Cognitive Bypassing）与学习幻觉</h3>
+          </div>
+
+          <div class="layer-tabs" role="tablist" aria-label="信息分层切换">
+            <button type="button" class="layer-tab-btn active" id="tab-l1" onclick="setLayerView('l1')">
+              L1 全景速览
+            </button>
+            <button type="button" class="layer-tab-btn" id="tab-l2" onclick="setLayerView('l2')">
+              L2 逻辑关系图
+            </button>
+            <button type="button" class="layer-tab-btn" id="tab-l3" onclick="setLayerView('l3')">
+              L3 深度原理解析与科研出处
+            </button>
+            <button type="button" class="layer-tab-btn" id="tab-all" onclick="setLayerView('all')">
+              全部层级展开
+            </button>
+          </div>
+
+          <div id="layer-content-area" style="display: grid; gap: var(--space-md);"></div>
+        </div>
+
+        <!-- Right Column: AI Prompt Action Triggers -->
+        <aside class="prompt-sidebar" aria-label="AI 协同提示词触发器">
+          <div>
+            <div class="dossier-meta" style="font-weight: 700; color: var(--tertiary);">AI 协同行动触发器</div>
+            <p class="prose-muted" style="font-size: 0.8rem; margin-top: 2px;">仅用于消除枯燥耗时（Tedium）或压力测试，绝不代劳组织逻辑。</p>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="custom-topic-input">自定义你的学习主题 / 材料名称：</label>
+            <input type="text" id="custom-topic-input" class="text-input" value="Transformer 注意力机制 / 心衰药理学" oninput="updateCustomTopic(this.value)">
+          </div>
+
+          <div id="prompt-triggers-list" style="display: grid; gap: var(--space-md);"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Interactive Lab: AI Complexity Curve & Tool Audit -->
+    <section id="ai-boundary-lab" class="module-section" aria-label="AI 复杂度风险曲线与工具红黑榜">
+      <div class="section-header-bar">
+        <div>
+          <span class="dossier-pill amber">AI BOUNDARY LAB &amp; TOOL AUDIT</span>
+          <h2 class="section-title" style="margin-top: var(--space-xs);">什么时候该用 AI？复杂度 × 长期风险评估曲线与工具红黑榜</h2>
+          <p class="prose-muted" style="margin-top: 4px;">
+            AI 接管了过去占工作 80% 的机械整理，迫使剩下的 20% 复杂判断变成你全部的核心竞争力。拖动参数测试你的当前任务是否处于「认知退化危险区」。
+          </p>
+        </div>
+      </div>
+
+      <div class="boundary-grid">
+        <div class="card" style="display: grid; gap: var(--space-md);">
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-sm);">
+            <span class="dossier-meta" style="font-weight: 700; color: var(--on-surface);">AI 使用边界模拟曲线（Task-Reactive vs Expertise-Building）</span>
+            <span class="dossier-pill teal" id="sim-verdict-pill">评估：安全提速区</span>
+          </div>
+
+          <div class="preset-row" role="group" aria-label="常见学习场景预设">
+            <button type="button" class="preset-chip active" id="pre-task" onclick="applyBoundaryPreset('task')">一次性查 API / 格式转换</button>
+            <button type="button" class="preset-chip" id="pre-commute" onclick="applyBoundaryPreset('commute')">通勤 10 分钟音频复习</button>
+            <button type="button" class="preset-chip" id="pre-core" onclick="applyBoundaryPreset('core')">跨领域核心专业能力建构</button>
+            <button type="button" class="preset-chip" id="pre-exam" onclick="applyBoundaryPreset('exam')">医学 / 架构高阶应用大考</button>
+          </div>
+
+          <div class="curve-svg-box">
+            <svg id="boundary-curve-svg" viewBox="0 0 600 280" style="width: 100%; height: auto; display: block;" role="img" aria-label="AI 使用复杂度与认知绕过风险评估曲线"></svg>
+          </div>
+        </div>
+
+        <div class="card" style="display: grid; gap: var(--space-md);">
+          <div class="dossier-meta" style="font-weight: 700; color: var(--secondary);">调节任务参数</div>
+          <div class="slider-row">
+            <div class="slider-label-line">
+              <label class="slider-label" for="sim-complexity">概念复杂度与跨节点关联度</label>
+              <span class="slider-val" id="val-sim-complexity">25%</span>
+            </div>
+            <input type="range" id="sim-complexity" min="5" max="95" value="25" oninput="updateBoundarySim()">
+          </div>
+          <div class="slider-row">
+            <div class="slider-label-line">
+              <label class="slider-label" for="sim-retention">未来长期迁移 / 闭卷决策需求</label>
+              <span class="slider-val" id="val-sim-retention">20%</span>
+            </div>
+            <input type="range" id="sim-retention" min="5" max="95" value="20" oninput="updateBoundarySim()">
+          </div>
+
+          <div class="prescription-box" id="sim-verdict-box">
+            <div style="font-weight: 700;" id="sim-verdict-title">Task-Reactive（任务响应式）：适合高比例使用 AI</div>
+            <p class="prose-muted" id="sim-verdict-desc">
+              此任务低复杂度且无需长期内化为你的直觉判断。直接让 LLM 生成示例、清洗数据或提取结构，能最大化释放时间去攻克真正的「青蛙任务（Eat the Frog）」。
+            </p>
+          </div>
+
+          <div class="sketch-callout">
+            <div style="font-weight: 700; font-size: 0.9rem; color: var(--secondary);">Justin Sung 的底层判断法则：</div>
+            <p class="prose-muted" style="font-size: 0.85rem; margin-top: 4px;">
+              自问「我痛恨这件事是因为它<em>枯燥耗时（Tedium）</em>，还是因为它<em>需要艰难思考（Cognitive Effort）</em>？」如果是前者，交给 AI；如果是后者，那份痛苦正是神经可塑性发生的信号。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tool Audit Grid -->
+      <div>
+        <div class="dossier-meta" style="font-weight: 700; color: var(--on-surface); margin-bottom: var(--space-sm);">AI 时代学习工具与方法红黑榜（基于人类认知架构评估）</div>
+        <div class="tool-audit-grid">
+          <div class="tool-card">
+            <span class="tool-verdict verdict-good">S 级推荐 · 极低外包风险</span>
+            <div style="font-weight: 700;">纸笔 / 无边界白板（Concepts · Freeform）</div>
+            <p class="prose-muted" style="font-size: 0.86rem;">
+              摆脱横线束缚，利用 iPad 套索工具（Lasso）随思考推进不断拖拽重排组块。纸面翻阅对比毫无摩擦，笔记只是「思维触发器」。
+            </p>
+          </div>
+          <div class="tool-card">
+            <span class="tool-verdict verdict-good">A 级推荐 · 必须手动调参</span>
+            <div style="font-weight: 700;">NotebookLM（开启 Learning Guide 模式）</div>
+            <p class="prose-muted" style="font-size: 0.86rem;">
+              注意：默认状态关闭！必须在对话设置勾选「Learning Guide」，强迫 AI 用反问引导你主动检索生成，而非直接吐出标准答案。
+            </p>
+          </div>
+          <div class="tool-card">
+            <span class="tool-verdict verdict-good">A 级推荐 · 限高阶自检</span>
+            <div style="font-weight: 700;">ChatGPT / Claude（回音壁与盲区审计）</div>
+            <p class="prose-muted" style="font-size: 0.86rem;">
+              自己先构建好初版 Schema 后，让它检查「我遗漏了哪些视角？哪两个分支之间其实存在反向冲突（Anti-thesis）？」。
+            </p>
+          </div>
+          <div class="tool-card">
+            <span class="tool-verdict verdict-caution">条件使用 · 仅限 L4 层</span>
+            <div style="font-weight: 700;">Anki / 间隔重复闪卡</div>
+            <p class="prose-muted" style="font-size: 0.86rem;">
+              只擅长检验孤立零碎的 Layer 4 事实（如生僻药物名、年份）。若用来背概念逻辑，会锁死在考题字面参数内，无法应对曲线变化题。
+            </p>
+          </div>
+          <div class="tool-card">
+            <span class="tool-verdict verdict-bad">认知陷阱 · 高幻觉率</span>
+            <div style="font-weight: 700;">Notion / RemNote 等线性数据库笔记</div>
+            <p class="prose-muted" style="font-size: 0.86rem;">
+              由软件工程师按「数据库逻辑」而非「人脑认知架构」设计。强制层级缩进与精美排版，诱发看似勤奋的伪整理。
+            </p>
+          </div>
+          <div class="tool-card">
+            <span class="tool-verdict verdict-bad">红牌警告 · 主动遗忘决策</span>
+            <div style="font-weight: 700;">荧光笔划线 + AI 一键读长文摘要</div>
+            <p class="prose-muted" style="font-size: 0.86rem;">
+              Justin 调侃「一支荧光笔用了 7 年」。划线相当于告诉大脑「这很重要，但我现在懒得处理」；AI 一键摘要则直接剥夺编码过程。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Module 4: Real Case Audit & Clinic -->
+    <section id="clinic-audit" class="module-section" aria-label="真实案例拆解室">
+      <div class="section-header-bar">
+        <div>
+          <span class="dossier-pill">MODULE 04 · AUDIT &amp; CLINIC</span>
+          <h2 class="section-title" style="margin-top: var(--space-xs);">真实案例拆解室：错误的线性笔记 vs 重构后的高阶网络图</h2>
+          <p class="prose-muted" style="margin-top: 4px;">
+            收录 Dr. Justin Sung 一对一辅导的真实学员病例——从初创公司跨界新人、外科住院医到企业 CEO，直观对比「低效假努力」与「高阶认知重构」。
+          </p>
+        </div>
+      </div>
+
+      <div class="case-tabs" role="tablist" aria-label="选择真实诊断病例">
+        <button type="button" class="case-tab-btn active" id="case-btn-julian" onclick="selectCase('julian')">
+          <span class="dossier-meta" style="color: var(--secondary); font-weight: 700;">CASE 01 · 初创公司毕业生</span>
+          <span style="font-weight: 700;">Julian：非技术背景突击 AI</span>
+          <span class="prose-muted" style="font-size: 0.8rem;">症状：能抄出 Demo，遇到复杂问题就断链</span>
+        </button>
+        <button type="button" class="case-tab-btn" id="case-btn-surgeon" onclick="selectCase('surgeon')">
+          <span class="dossier-meta" style="color: var(--secondary); font-weight: 700;">CASE 02 · 十年资历外科医生</span>
+          <span style="font-weight: 700;">外科住院医：感觉「变慢了」</span>
+          <span class="prose-muted" style="font-size: 0.8rem;">症状：误把流畅阅读当成真效率的心理落差</span>
+        </button>
+        <button type="button" class="case-tab-btn" id="case-btn-ed" onclick="selectCase('ed')">
+          <span class="dossier-meta" style="color: var(--secondary); font-weight: 700;">CASE 03 · 急诊科培训医生</span>
+          <span style="font-weight: 700;">急诊医生：刷题派的知识偏见</span>
+          <span class="prose-muted" style="font-size: 0.8rem;">症状：依赖题海记忆，临床外推能力缺失</span>
+        </button>
+        <button type="button" class="case-tab-btn" id="case-btn-ceo" onclick="selectCase('ceo')">
+          <span class="dossier-meta" style="color: var(--secondary); font-weight: 700;">CASE 04 · 企业高管 / CEO</span>
+          <span style="font-weight: 700;">CEO：20 分钟吞下 500 页专著</span>
+          <span class="prose-muted" style="font-size: 0.8rem;">症状：被作者线性目录绑架（Order Control）</span>
+        </button>
+      </div>
+
+      <div class="card" style="display: grid; gap: var(--space-md);">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-sm); border-bottom: 1px solid var(--outline-variant); padding-bottom: var(--space-sm);">
+          <div>
+            <div class="dossier-meta" id="case-kicker" style="color: var(--primary); font-weight: 700;">1V1 COACHING AUDIT · 病例档案</div>
+            <h3 class="section-title" id="case-title" style="font-size: 1.35rem;">Julian：非技术背景在 AI 初创公司的高压学习</h3>
+          </div>
+          <button type="button" class="btn btn-secondary" id="toggle-annotations-btn" onclick="toggleCaseAnnotations()">
+            <i data-lucide="eye" width="16" height="16"></i> 隐藏诊断症状标注
+          </button>
+        </div>
+
+        <p class="prose" id="case-context"></p>
+
+        <div class="compare-grid">
+          <div class="compare-panel before">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="dossier-pill" style="background: var(--error); color: var(--on-error);">BEFORE · 错误线性模式</span>
+              <span class="dossier-meta" id="before-metric">高流畅错觉 · 7天后留存 &lt;15%</span>
+            </div>
+            <div id="case-before-svg" style="min-height: 230px;"></div>
+            <div class="symptom-note" id="case-before-diag"></div>
+          </div>
+
+          <div class="compare-panel after">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="dossier-pill teal">AFTER · 重构后高阶 Chunk Map</span>
+              <span class="dossier-meta" id="after-metric">前期高阻尼 · 长期免重复复习</span>
+            </div>
+            <div id="case-after-svg" style="min-height: 230px;"></div>
+            <div class="reconstruct-note" id="case-after-rx"></div>
+          </div>
+        </div>
+
+        <div id="case-earn-container"></div>
+      </div>
+    </section>
+
+    <!-- Footer & Workspace Export -->
+    <footer class="site-footer">
+      <div class="footer-actions">
+        <div>
+          <div style="font-weight: 700; font-family: var(--font-headline); font-size: 1.1rem;">导出你的诊断档案与「挣得答案」思考记录</div>
+          <p class="prose-muted" style="font-size: 0.85rem;">
+            所有自评雷达数据与思考输入均可通过当前工作区状态保存或导出为纯文本笔记。
+          </p>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: center;">
+          <button type="button" class="btn btn-primary" onclick="exportLearningDossier()">
+            <i data-lucide="download" width="16" height="16"></i> 导出个人认知诊断报告 (.txt)
+          </button>
+          <button type="button" class="btn btn-secondary" id="reset-workspace-btn" onclick="resetWorkspace(this)">
+            <i data-lucide="rotate-ccw" width="16" height="16"></i> 重置实验室状态
+          </button>
+        </div>
+      </div>
+      <div class="inline-toast" id="footer-toast" aria-live="polite"></div>
+
+      <div class="card-stone" style="font-size: 0.84rem; color: var(--on-surface-variant);">
+        <strong>内容溯源与学术依据说明：</strong>
+        本知识策展实验室内所有概念、案例拆解与工作流均提炼自 Dr. Justin Sung（前临床医生、ICanStudy 教学总监）公开发布的认知科学与学习科学专题讲座、一对一学习系统审计录像（涵盖 Julian AI 学习审计、外科住院医师效率悖论、急诊医学备考、CEO 线性阅读重构等真实教学案例），并结合其引用的基础研究框架：Bloom 修订认知目标分类法、SOLO 分类评价理论、John Sweller 认知负荷理论（Cognitive Load Theory）、Robert Bjork 合意困难理论（Desirable Difficulty）、Carolyn West (2010) 教授教学流畅度与长期表现研究、Sonnentag &amp; Fritz 恢复心理学四维度模型，以及记忆印迹（Engram）光遗传激活实验。本页面为独立整理之交互式学习工具。
+      </div>
+    </footer>
+  </div>
+
+  <api-shim></api-shim>
+
+  <script>
+    /* =========================================================
+       1. DATA REPOSITORY (Backtick template literals everywhere)
+       ========================================================= */
+
+    const HERO_NODES = {
+      core: {
+        tag: `CORE ANCHOR · 认知网络核心`,
+        title: `高阶认知架构（Schema）：所有记忆与迁移的物理容器`,
+        desc: `大脑不是录音机，而是极其挑剔的「相关性过滤器」。只有把零散知识编织进比较、因果与优先级的网状结构中，记忆才会持久且能应对复杂变题。`,
+        target: `layering-lab`,
+        topicId: `m2-chunk`
+      },
+      diag: {
+        tag: `00 · 临床问诊入口`,
+        title: `停止盲目换工具：先诊断你的最大速率瓶颈（Rate Limiter）`,
+        desc: `通过 5 维学习系统评估（深度处理、自我调节、合意困难、注意力管理、高阶检索），像医生问诊一样找出拖垮你学习效率的唯一关键卡点。`,
+        target: `diagnostic-hub`,
+        topicId: null
+      },
+      m1: {
+        tag: `MODULE 01 · AI 时代的防线`,
+        title: `认知绕过（Cognitive Bypassing）与学习幻觉`,
+        desc: `用 AI 消除「翻书摘录」的枯燥时间是聪明的；但让 AI 替你总结核心逻辑，会让你陷入「流畅性幻觉」，造成大脑高阶回路退化。`,
+        target: `layering-lab`,
+        topicId: `m1-bypass`
+      },
+      m2: {
+        tag: `MODULE 02 · 非线性建构`,
+        title: `组块地图（2–4 法则）与同心圆分层阅读法`,
+        desc: `打破作者的「线性顺序偏见（Order Control）」。任何节点下属分组严格控制在 2–4 个，先建 L1 全景，再攻 L2 关系，最后收尾 L3/L4 零碎。`,
+        target: `layering-lab`,
+        topicId: `m2-layering`
+      },
+      m3: {
+        tag: `MODULE 03 · 人机协同实战`,
+        title: `3 分钟无序关键词跳板 × NotebookLM 学习指南模式`,
+        desc: `把 LLM 变成「关键词提取器」和「严苛审稿人（Sounding Board）」，并在 NotebookLM 手动开启 Learning Guide 倒逼自己主动输出。`,
+        target: `layering-lab`,
+        topicId: `m3-keywords`
+      },
+      m4: {
+        tag: `MODULE 04 · 1v1 病例审计`,
+        title: `从「抄书式线性笔记」到「单页高阶网络图」的临床蜕变`,
+        desc: `拆解 Julian、外科医生、急诊科医生与企业 CEO 的真实笔记前后对比，看清「看似变慢，实则消灭 80% 重复复习」的底层规律。`,
+        target: `clinic-audit`,
+        topicId: null
+      }
+    };
+
+    const SYMPTOMS = {
+      'ai-overload': {
+        headline: `你正用「借来的清晰度」掩盖「缺失的编码过程」`,
+        body: `AI 给出的流畅摘要让你产生「我看懂了」的强烈多巴胺反馈（Fluency Signals），但大脑并没有经历连接与权衡的痛苦。一周后只剩「我好像学过」的空壳记忆，真正动手解决复杂问题时立刻卡壳。`,
+        limiterFallback: `心态与合意困难 / 认知绕过（Cognitive Bypassing）`,
+        steps: [
+          { label: `STEP 1 · 划清「省时 vs 省脑力」的 AI 边界`, action: `selectTopic`, topicId: `m1-bypass`, section: `layering-lab` },
+          { label: `STEP 2 · 在复杂度曲线中自检当前任务是否过载外包`, action: `scroll`, section: `ai-boundary-lab` },
+          { label: `STEP 3 · 启用「无序关键词跳板」与 NotebookLM 学习指南`, action: `selectTopic`, topicId: `m3-keywords`, section: `layering-lab` }
+        ]
+      },
+      'illusion': {
+        headline: `低阶重复（重读/荧光笔/盲目闪卡）正在制造「假记忆」`,
+        body: `不断重读笔记或刷孤立闪卡，只训练了「考题字面匹配」的反射弧。一旦遇到跨章节融合题或现实复杂决策，低阶孤立事实根本调动不起来，必须每天反复重背，陷入越学越累的死循环。`,
+        limiterFallback: `深度处理编码不足（Leaky Bucket 漏水桶效应）`,
+        steps: [
+          { label: `STEP 1 · 理解为什么高阶编码能「一石二鸟」平缓遗忘曲线`, action: `selectTopic`, topicId: `m2-relevance`, section: `layering-lab` },
+          { label: `STEP 2 · 查看外科住院医「感觉变慢实则提速」真实病例`, action: `selectCase`, caseId: `surgeon`, section: `clinic-audit` },
+          { label: `STEP 3 · 用「偷梁换柱重构法」与高阶对比取代重读`, action: `selectTopic`, topicId: `m2-chunk`, section: `layering-lab` }
+        ]
+      },
+      'linear': {
+        headline: `你被教材或作者的「线性目录（Order Control）」绑架了`,
+        body: `专家写书时脑中是网状知识，但印刷必须按第 1 页到第 500 页线性排列。按顺序抄写完整句子会耗尽工作记忆容量，让你只见树木不见森林，无法看清概念间的真实因果权重。`,
+        limiterFallback: `线性顺序偏见（Order Control）与工作记忆超载`,
+        steps: [
+          { label: `STEP 1 · 掌握「组块地图 2–4 分组法则」与空间锚点`, action: `selectTopic`, topicId: `m2-chunk`, section: `layering-lab` },
+          { label: `STEP 2 · 切换至「L1→L4 同心圆分层阅读法」`, action: `selectTopic`, topicId: `m2-layering`, section: `layering-lab` },
+          { label: `STEP 3 · 拆解 CEO「20 分钟解构 500 页专著」实战图谱`, action: `selectCase`, caseId: `ceo`, section: `clinic-audit` }
+        ]
+      }
+    };
+
+    const TOPICS = [
+      {
+        id: `m1-bypass`,
+        module: `M1 · AI 边界`,
+        shortLabel: `M1.1 认知绕过与 AI 边界`,
+        title: `认知绕过（Cognitive Bypassing）：为什么看懂 AI 摘要不等于学会`,
+        ring: 1,
+        coords: { x: 145, y: 55 },
+        l1: {
+          summary: `核心结论只有一句话：<strong>你可以用 AI 节省时间（Tedium），但绝不能用 AI 节省思考努力（Cognitive Effort）。</strong>`,
+          bullets: [
+            `学习发生在信息进入大脑后的「信息加工（Information Processing）」阶段，而不是阅读本身。`,
+            `AI 帮你把杂乱资料整理出清晰结构时，那份「清晰度」属于 AI，不属于你的神经元连接。`,
+            `AI 已经接管了过去 80% 的机械低阶工作，剩下的 20% 复杂判断如今成了你全部的职场壁垒。`
+          ]
+        },
+        earnPrompt: {
+          id: `earn-m1-bypass`,
+          question: `思考阻尼测试：假设一位产品经理和一位资深医生同时用 ChatGPT 总结同一份复杂医学前沿论文，为什么一周后医生能灵活应用该结论，而新人却几乎忘光？`,
+          hint: `提示：思考大脑中「先验锚点」与「加工主体」的差异`
+        },
+        l2: {
+          caption: `信息加工断路模型：传统低效 vs AI 认知绕过 vs 合意困难编码`,
+          svg: `<svg viewBox="0 0 560 220" style="width:100%;height:auto;display:block;" role="img" aria-label="AI 认知绕过断路对比图">
+            <defs>
+              <marker id="m1-arr-ok" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--primary)"/>
+              </marker>
+              <marker id="m1-arr-bad" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--error)"/>
+              </marker>
+            </defs>
+            <!-- Top Row: Healthy Deep Processing -->
+            <text x="16" y="24" font-size="11.5" font-weight="700" fill="var(--primary)">健康路径：AI 仅消除前置枯燥，大脑承担核心加工</text>
+            <rect x="16" y="36" width="110" height="44" rx="5" fill="var(--surface-container-low)" stroke="var(--outline)"/>
+            <text x="71" y="62" text-anchor="middle" font-size="12" font-weight="600" fill="var(--on-surface)">原始庞杂资料</text>
+            <line x1="126" y1="58" x2="162" y2="58" stroke="var(--primary)" stroke-width="2.5" marker-end="url(#m1-arr-ok)"/>
+            <rect x="166" y="32" width="190" height="52" rx="6" fill="var(--primary-container)" stroke="var(--primary)" stroke-width="2"/>
+            <text x="261" y="54" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--on-primary-container)">大脑主动编码（高负荷）</text>
+            <text x="261" y="72" text-anchor="middle" font-size="10.5" fill="var(--on-primary-container)">对比 · 归类 · 质疑 · 建 Schema</text>
+            <line x1="356" y1="58" x2="394" y2="58" stroke="var(--primary)" stroke-width="3.5" marker-end="url(#m1-arr-ok)"/>
+            <rect x="398" y="36" width="144" height="44" rx="5" fill="var(--surface-container-low)" stroke="var(--primary)" stroke-width="1.5"/>
+            <text x="470" y="62" text-anchor="middle" font-size="12" font-weight="700" fill="var(--primary)">持久记忆 + 迁移力</text>
+
+            <!-- Bottom Row: Cognitive Bypassing -->
+            <text x="16" y="122" font-size="11.5" font-weight="700" fill="var(--error-text)">陷阱路径：认知绕过（Cognitive Bypassing）</text>
+            <rect x="16" y="134" width="110" height="44" rx="5" fill="var(--surface-container-low)" stroke="var(--outline)"/>
+            <text x="71" y="160" text-anchor="middle" font-size="12" font-weight="600" fill="var(--on-surface)">原始庞杂资料</text>
+            <!-- Bypassing arc over the brain -->
+            <path d="M 126 150 C 180 112, 340 112, 394 150" fill="none" stroke="var(--error)" stroke-width="2.5" stroke-dasharray="5 3" marker-end="url(#m1-arr-bad)"/>
+            <rect x="200" y="106" width="122" height="24" rx="4" fill="var(--error-soft)" stroke="var(--error)"/>
+            <text x="261" y="122" text-anchor="middle" font-size="11" font-weight="700" fill="var(--error-text)">LLM 一键总结提纯</text>
+
+            <rect x="176" y="144" width="170" height="44" rx="5" fill="var(--surface-container)" stroke="var(--outline-variant)" stroke-dasharray="4 3"/>
+            <text x="261" y="170" text-anchor="middle" font-size="11.5" fill="var(--on-surface-variant)">大脑休眠（未形成神经连接）</text>
+
+            <rect x="398" y="134" width="144" height="44" rx="5" fill="var(--error-soft)" stroke="var(--error)"/>
+            <text x="470" y="154" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--error-text)">流畅性幻觉</text>
+            <text x="470" y="170" text-anchor="middle" font-size="10.5" fill="var(--error-text)">2 周后记忆归零</text>
+          </svg>`,
+          points: [
+            `<strong>流畅性信号骗局（Fluency Signals）：</strong> AI 生成的条目清晰、比喻生动，读取时毫无阻滞感。人类大脑会把「顺畅感」误判为「已掌握」。`,
+            `<strong>记忆残影现象：</strong> 当你用 AI 跳过困惑直接看答案，两周后你记住的不是知识本身，而是「我曾经在某天看懂过这件事」的元记忆错觉。`
+          ]
+        },
+        l3: {
+          theory: `人类认知架构（Human Cognitive Architecture）与 Sweller 认知负荷理论指出：工作记忆容量有限，但长时记忆的建立依赖于图式（Schema）的积极建构。Robert Bjork 提出的「合意困难（Desirable Difficulty）」证明：适度提升编码阶段的心智提取难度与困惑度，虽降低当下主观流畅感，却能倍增长期留存与远迁移能力。`,
+          citation: `科研实证：Carolyn West (2010)《Does Professor Quality Matter?》对美国空军学院微积分学生追踪发现，把课程讲得最轻松、学生打分最高的老师，反而导致学生在后续高阶微积分课程中表现更差——因为「无痛理解」剥夺了学生自主挣扎建构图式的机会。`
+        },
+        prompts: [
+          {
+            title: `无痛消歧：只让 AI 帮我扫清术语，不给逻辑`,
+            rule: `红线：禁止要求它「总结核心结论」或「帮我整理好思维导图」`,
+            good: true,
+            text: `我正在学习【{{TOPIC}}】。请列出理解这个主题前必须先认识的 8 个前置基础术语，每个术语仅用一句话给出日常直观解释，不要总结全文结构，也不要告诉我它们之间如何相互影响——我想自己推导它们的因果关系。`
+          }
+        ]
+      },
+      {
+        id: `m1-attention`,
+        module: `M1 · 注意力与自我管理`,
+        shortLabel: `M1.2 50% 专注阈值与精力防线`,
+        title: `自我管理与注意力阈值：为什么「硬撑」会毁掉大脑的条件反射`,
+        ring: 1,
+        coords: { x: 168, y: 92 },
+        l1: {
+          summary: `核心结论：<strong>时间管理远不如注意力管理（Attention Management）重要；一旦感知到专注力跌破 50%，立刻强制休息。</strong>`,
+          bullets: [
+            `低于 50% 专注度继续硬学，不仅单位效率极低，更危险的是你在训练大脑「坐在书桌前分心是正常的」（不良经典条件反射）。`,
+            `优先处理「Book the Scan（提前发出依赖外部回复的请求）」与「Eat the Frog（最难最核心的高阶任务）」。`,
+            `Win the week, not the day：用「赢得整周」取代每日榨干式内卷，保留晚间 15–60 分钟大脑关机（Wind-down）仪式。`
+          ]
+        },
+        earnPrompt: {
+          id: `earn-m1-attention`,
+          question: `思考阻尼测试：为什么 Dr. Sung 反对死板套用 25 分钟番茄钟，而更推崇「50% 专注力感知」或「52/17 节奏」？`,
+          hint: `提示：思考高阶认知编码进入「心流深度」所需的时间成本，以及被闹钟强行打断的代价`
+        },
+        l2: {
+          caption: `专注度衰减曲线：50% 阈值线下的双倍亏损机制`,
+          svg: `<svg viewBox="0 0 560 200" style="width:100%;height:auto;display:block;" role="img" aria-label="专注度50%阈值曲线图">
+            <line x1="50" y1="165" x2="520" y2="165" stroke="var(--on-surface)" stroke-width="1.5"/>
+            <line x1="50" y1="25" x2="50" y2="165" stroke="var(--on-surface)" stroke-width="1.5"/>
+            <!-- 50% threshold dashed line -->
+            <line x1="50" y1="95" x2="520" y2="95" stroke="var(--amber)" stroke-width="2" stroke-dasharray="6 4"/>
+            <text x="515" y="88" text-anchor="end" font-size="11" font-weight="700" fill="var(--tertiary)">50% 临床止损阈值线</text>
+            <!-- Curve -->
+            <path d="M 55 40 C 180 42, 240 65, 290 95 C 330 120, 410 148, 505 156" fill="none" stroke="var(--primary)" stroke-width="3"/>
+            <!-- Danger zone fill -->
+            <path d="M 290 95 C 330 120, 410 148, 505 156 L 505 165 L 290 165 Z" fill="var(--error-soft)" opacity="0.7"/>
+            <circle cx="290" cy="95" r="5.5" fill="var(--amber)" stroke="var(--on-surface)" stroke-width="1.5"/>
+            <text x="290" y="68" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--on-surface)">信号：同一句话读两遍才懂</text>
+            <text x="415" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="var(--error-text)">不良条件反射区（越学越钝）</text>
+            <text x="165" y="135" text-anchor="middle" font-size="11.5" font-weight="600" fill="var(--primary)">50% 以上：短暂休息可快速回弹</text>
+          </svg>`,
+          points: [
+            `<strong>识别 50% 信号：</strong> 当你发现自己需要反复重读同一段话、开始机械抄字不再主动提问时，精力已滑落至 50% 边缘。此时休息 15 分钟即可快速满血；若强撑到 10%，需要数小时才能恢复。`,
+            `<strong>物理场域锚定（Dorm Lamp Study）：</strong> 学习时使用专属台灯或唯一窄窗口（每行 45–70 字符），严禁在同一盏灯下刷手机或闲聊，建立纯洁的神经触发器。`
+          ]
+        },
+        l3: {
+          theory: `Sonnentag & Fritz 的休养心理学四维度模型表明，高质量恢复不仅包含「放松（Relaxation）」与「心理抽离（Psychological Detachment）」，还包含「掌控感体验（Mastery，如运动健身带来正反馈）」与「自主控制感（Control）」。此外，短期高强度冲刺后的「咖啡因小憩（Nappuccino：喝完咖啡立刻小睡 10–20 分钟）」可利用咖啡因吸收时间窗口精准清除腺苷。`,
+          citation: `来源参考：Dr. Justin Sung《3-Point Checklist to Create Focus On Demand》《How to Rest So Well You Never Feel Exhausted Again》及《Why the Pomodoro Technique REALLY Works》。`
+        },
+        prompts: [
+          {
+            title: `每日 Frogs 优先级与阻塞扫描器`,
+            rule: `用途：快速识别可外包/需提前发出的「Scan 任务」，把完整专注块留给核心难点`,
+            good: true,
+            text: `这是我今天关于【{{TOPIC}}】和工作的待办清单：[粘贴清单]。请按 Justin Sung 的「Book the Scan（需等他人反馈的阻塞项）」和「Eat the Frog（最复杂且高回报的单一核心攻坚任务）」帮我重排前三顺位，并指出哪些琐事可以批处理或直接删掉。`
+          }
+        ]
+      },
+      {
+        id: `m2-chunk`,
+        module: `M2 · 组块与空间架构`,
+        shortLabel: `M2.1 组块地图与 2–4 法则`,
+        title: `组块地图（Chunk Map）vs 普通导图：2–4 分组法则与空间即意义`,
+        ring: 2,
+        coords: { x: 85, y: 90 },
+        l1: {
+          summary: `核心结论：<strong>普通思维导图只是把线性列表掰弯成放射状；真正的 Chunk Map 强制单节点最多 4 个分支，用空间距离和线条权重承载逻辑。</strong>`,
+          bullets: [
+            `<strong>2–4 法则：</strong> 任何概念或分支向下延伸的子组块绝不超过 4 个。如果超过 4 个，说明你没有真正理解分类依据，必须强迫自己往上抽象合并。`,
+            `<strong>线条不交叉 &amp; 无完整句子：</strong> 只写极简关键词作为记忆钩子；发现箭头交叉，立即用套索工具整体挪动重组布局。`,
+            `<strong>停止盲目用颜色编码：</strong> 颜色往往只是装饰与逃避思考，改用空间位置远近、箭头方向和线条粗细表达主次权重。`
+          ]
+        },
+        earnPrompt: {
+          id: `earn-m2-chunk`,
+          question: `思考阻尼测试：为什么一个包含了 8 个并列要点的清单，在强迫合并为「2–4 个上位组块」的过程中，记忆留存率会骤然飙升？`,
+          hint: `提示：思考合并过程中大脑被迫执行的「评估（Evaluate）」与「对比（Compare）」属于 Bloom 分类法的哪一层`
+        },
+        l2: {
+          caption: `普通放射状导图（伪非线性） vs 组块地图（2–4 法则 × 权重流）`,
+          svg: `<svg viewBox="0 0 560 220" style="width:100%;height:auto;display:block;" role="img" aria-label="普通思维导图与Chunk Map对比图">
+            <!-- Left: Bad Mind Map -->
+            <text x="130" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="var(--error-text)">普通思维导图（7个散乱分支+交叉）</text>
+            <rect x="15" y="34" width="230" height="170" rx="6" fill="var(--surface-container-low)" stroke="var(--error)" stroke-dasharray="4 3"/>
+            <circle cx="130" cy="118" r="24" fill="var(--surface-container)" stroke="var(--outline)"/>
+            <text x="130" y="122" text-anchor="middle" font-size="11" font-weight="700">核心主题</text>
+            <!-- 7 chaotic spokes & crossing lines -->
+            <line x1="130" y1="94" x2="60" y2="55" stroke="var(--on-surface-variant)" stroke-width="1.2"/>
+            <line x1="130" y1="94" x2="125" y2="50" stroke="var(--on-surface-variant)" stroke-width="1.2"/>
+            <line x1="130" y1="94" x2="200" y2="58" stroke="var(--on-surface-variant)" stroke-width="1.2"/>
+            <line x1="154" y1="118" x2="215" y2="120" stroke="var(--on-surface-variant)" stroke-width="1.2"/>
+            <line x1="130" y1="142" x2="195" y2="180" stroke="var(--on-surface-variant)" stroke-width="1.2"/>
+            <line x1="130" y1="142" x2="115" y2="185" stroke="var(--on-surface-variant)" stroke-width="1.2"/>
+            <line x1="106" y1="118" x2="48" y2="165" stroke="var(--on-surface-variant)" stroke-width="1.2"/>
+            <!-- Crossing red lines -->
+            <line x1="55" y1="60" x2="195" y2="176" stroke="var(--error)" stroke-width="1.3" stroke-dasharray="3 2"/>
+            <line x1="200" y1="60" x2="55" y2="162" stroke="var(--error)" stroke-width="1.3" stroke-dasharray="3 2"/>
+            <text x="60" y="52" font-size="10">完整长句1</text>
+            <text x="125" y="46" font-size="10">点2</text>
+            <text x="195" y="54" font-size="10">点3</text>
+            <text x="210" y="135" font-size="10">点4</text>
+            <text x="195" y="192" font-size="10">点5</text>
+            <text x="115" y="196" font-size="10">点6</text>
+            <text x="48" y="178" font-size="10">点7</text>
+
+            <!-- Right: Chunk Map -->
+            <text x="415" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="var(--primary)">高阶 Chunk Map（每级 ≤4 组块 · 零交叉）</text>
+            <rect x="285" y="34" width="260" height="170" rx="6" fill="var(--surface-container-low)" stroke="var(--primary)" stroke-width="1.5"/>
+            <rect x="372" y="46" width="86" height="30" rx="5" fill="var(--primary-container)" stroke="var(--primary)"/>
+            <text x="415" y="65" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--on-primary-container)">上位机制</text>
+
+            <!-- Only 3 weighted clean branches -->
+            <path d="M 385 76 C 350 96, 335 102, 335 112" fill="none" stroke="var(--primary)" stroke-width="3.2"/>
+            <path d="M 415 76 L 415 112" fill="none" stroke="var(--secondary)" stroke-width="2.2"/>
+            <path d="M 445 76 C 480 96, 495 102, 495 112" fill="none" stroke="var(--amber)" stroke-width="1.6" stroke-dasharray="4 2"/>
+
+            <rect x="298" y="112" width="74" height="32" rx="4" fill="var(--surface-container)" stroke="var(--primary)"/>
+            <text x="335" y="132" text-anchor="middle" font-size="11" font-weight="700">核心块 A</text>
+
+            <rect x="378" y="112" width="74" height="32" rx="4" fill="var(--surface-container)" stroke="var(--secondary)"/>
+            <text x="415" y="132" text-anchor="middle" font-size="11" font-weight="700">核心块 B</text>
+
+            <rect x="458" y="112" width="74" height="32" rx="4" fill="var(--surface-container)" stroke="var(--amber)"/>
+            <text x="495" y="132" text-anchor="middle" font-size="11" font-weight="700">调节块 C</text>
+
+            <!-- Causal horizontal flow without crossing -->
+            <line x1="372" y1="128" x2="378" y2="128" stroke="var(--primary)" stroke-width="2.5"/>
+            <text x="415" y="172" text-anchor="middle" font-size="10.5" fill="var(--on-surface-variant)">关键词触发器 · 90% 思考 + 10% 落笔</text>
+            <text x="415" y="190" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--primary)">重排过程本身即神经重塑</text>
+          </svg>`,
+          points: [
+            `<strong>90/10 黄金比例：</strong> 一页优秀笔记看似寥寥数个词，但背后经历了 90% 时间的「思辨、否定、套索拖拽重组」。好看的 Studygram 书法笔记往往是学习效率最低的。`,
+            `<strong>偷梁换柱式总结（Sneaky Plagiarism）：</strong> 闭卷重绘网络图时，要求自己用完全不同于原作者的分类视角和因果链路重构，逼迫大脑真正拥有这套结构。`
+          ]
+        },
+        l3: {
+          theory: `Bloom 修订分类法（记忆→理解→应用→分析→评价→创造）与 SOLO 分类法（前结构→单点→多点→关联→抽象拓展）共同揭示：高阶操作（比较异同、评价优先级、构建关联结构）同时覆盖了低阶事实记忆——大脑在反复提取关系的过程中自动填补了底层的词义理解。`,
+          citation: `来源参考：Dr. Justin Sung《How CEOs Need to Learn》（500页单页 Chunk Map 原则）、《The Perfect Mindmap: 6 Step Checklist》及与《Ultra Learning》作者 Scott H. Young 的对谈。`
+        },
+        prompts: [
+          {
+            title: `强制执行「2–4 法则」的反向质询`,
+            rule: `用法：先自己把主题归纳成不超过 4 个核心块，再让 AI 攻击你的分类逻辑`,
+            good: true,
+            text: `我尝试把【{{TOPIC}}】归纳为以下不超过 4 个核心组块（Chunk）：[填入你的2-4个大类与关键词]。请不要直接重写一份导图给我，而是作为严苛评审指出：1）哪两个组块其实逻辑重叠可以合并？2）哪个组块内部隐藏了截然不同的因果机制，应该拆解或调换优先级？`
+          }
+        ]
+      },
+      {
+        id: `m2-layering`,
+        module: `M2 · 同心圆分层法`,
+        shortLabel: `M2.2 L1–L4 同心圆分层阅读`,
+        title: `同心圆分层掌握法（Concentric Layering）：逆线性扫描 4 层信息`,
+        ring: 2,
+        coords: { x: 110, y: 128 },
+        l1: {
+          summary: `核心结论：<strong>不要像读小说一样从第 1 页线性读到最后一页。把整份材料视为 4 层同心圆，先扫一遍全书拿下全部 L1，再回头攻克 L2。</strong>`,
+          bullets: [
+            `<strong>Layer 1（基础逻辑层）：</strong> 骨架概念与核心主旨。只读标题、粗体、图表、学习目标，20 分钟建立全景图。`,
+            `<strong>Layer 2（机制关联层 · 最耗时）：</strong> 概念间如何交互影响、对比异同。投入最高心智负荷深度加工。`,
+            `<strong>Layer 3 &amp; 4（细枝与孤立硬事实）：</strong> 无法通过逻辑推导的琐碎参数。确认必须记忆后，才交给闪卡或荒诞记忆宫殿收尾。`
+          ]
+        },
+        earnPrompt: {
+          id: `earn-m2-layering`,
+          question: `思考阻尼测试：为什么 Dr. Sung 建议在收集教材关键词时，刻意「从书的末尾往前翻、或从中间向两边翻」，且禁止用序号和缩进？`,
+          hint: `提示：思考教材的「打印顺序」与专家大脑里的「知识存储顺序」有何本质差异`
+        },
+        l2: {
+          caption: `4 层信息漏斗：先全局建骨架（L1），最后才筛选极少量零碎（L4）进闪卡`,
+          svg: `<svg viewBox="0 0 560 215" style="width:100%;height:auto;display:block;" role="img" aria-label="同心圆分层阅读L1到L4示意图">
+            <!-- Concentric circles on left -->
+            <circle cx="135" cy="108" r="88" fill="var(--surface-container)" stroke="var(--outline-variant)" stroke-width="1.5"/>
+            <circle cx="135" cy="108" r="65" fill="var(--amber-soft)" stroke="var(--amber)" stroke-width="1.5"/>
+            <circle cx="135" cy="108" r="44" fill="var(--secondary-container)" stroke="var(--secondary)" stroke-width="2"/>
+            <circle cx="135" cy="108" r="23" fill="var(--primary-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <text x="135" y="112" text-anchor="middle" font-size="11" font-weight="700" fill="var(--on-primary-container)">L1</text>
+            <text x="135" y="75" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--secondary)">L2 机制层</text>
+            <text x="135" y="52" text-anchor="middle" font-size="10" font-weight="700" fill="var(--tertiary)">L3 细节</text>
+            <text x="135" y="31" text-anchor="middle" font-size="10" fill="var(--on-surface-variant)">L4 孤立零碎</text>
+
+            <!-- Linear process arrows on right -->
+            <rect x="260" y="22" width="275" height="38" rx="5" fill="var(--primary-container)" stroke="var(--primary)"/>
+            <text x="272" y="45" font-size="12" font-weight="700" fill="var(--on-primary-container)">第 1 遍：仅过滤提取 L1 全景关键词</text>
+
+            <rect x="260" y="70" width="275" height="44" rx="5" fill="var(--secondary-container)" stroke="var(--secondary)"/>
+            <text x="272" y="90" font-size="12" font-weight="700" fill="var(--secondary)">第 2 遍：攻克 L2 因果对比（耗时最久）</text>
+            <text x="272" y="106" font-size="10.5" fill="var(--on-surface-variant)">不断暂停阅读，在 Chunk Map 中重排位置</text>
+
+            <rect x="260" y="124" width="275" height="40" rx="5" fill="var(--amber-soft)" stroke="var(--amber)"/>
+            <text x="272" y="148" font-size="12" font-weight="700" fill="var(--tertiary)">第 3 遍：合并筛选 L3/L4 无法推导的硬数据</text>
+
+            <rect x="260" y="174" width="275" height="28" rx="5" fill="var(--surface-container)" stroke="var(--outline-variant)"/>
+            <text x="272" y="192" font-size="11" font-weight="600" fill="var(--on-surface)">仅将 L4 放入 Anki / 荒诞记忆宫殿</text>
+          </svg>`,
+          points: [
+            `<strong>跳过卡壳黑洞（2-Minute Skip Rule）：</strong> 如果某个细节看了两分钟依然彻底卡死，立刻记下并跳过，优先往后扫 L1/L2，往往后面出现的新拼图会反过来直接解开前面的困惑。`,
+            `<strong>30 秒即时加工法则（Pause for Handling）：</strong> 每读入一个新概念，在 15–30 秒内立刻停下阅读，将其绑定进旧知识或做个小比喻，否则工作记忆刷新后即刻流失。`
+          ]
+        },
+        l3: {
+          theory: `打破「顺序控制（Order Control）」能够有效消除叙事序列偏差。人类专家的知识表征是高度联通的拓扑网络，可从任意节点切入推演。当学习者被迫在未完全读懂局部细节时先构建全局框架（先画底漆 Primer Layer，再逐层细化），后续细节自然获得极高的「相关性锚点（Relevance）」，从而将遗忘曲线大幅拉平。`,
+          citation: `来源参考：Dr. Justin Sung《4 Layers of Learning Every Student MUST Master》《My Most POWERFUL Study Trick》及《If You Have A Bad Memory, I'll Help You Fix It In 28 Minutes》。`
+        },
+        prompts: [
+          {
+            title: `L1→L4 信息层级预筛器（仅做分类标记）`,
+            rule: `提示：拿到结果后，只把 L1 词抄在纸上自己连线，L4 先搁置`,
+            good: true,
+            text: `下面是一段关于【{{TOPIC}}】的复杂材料：[粘贴文本]。请不要给我写摘要，只需帮我把文中出现的专有名词按 Justin Sung 的四层标准归类：L1（核心骨架概念，不超过5个）、L2（关键机制变量）、L3/L4（纯粹孤立的参数/年份/特例）。输出纯关键词列表即可。`
+          }
+        ]
+      },
+      {
+        id: `m2-relevance`,
+        module: `M2 · 相关性与编码`,
+        shortLabel: `M2.3 相关性锚点与遗忘曲线`,
+        title: `相关性锚点（Relevance）：用「先验拼图」拉平遗忘曲线`,
+        ring: 2,
+        coords: { x: 68, y: 120 },
+        l1: {
+          summary: `核心结论：<strong>遗忘的本质往往不是「提取失败」，而是大脑判定该信息「与我无关」而主动丢弃，或失去了通往记忆印迹的路径。</strong>`,
+          bullets: [
+            `孤立信息会被大脑代谢系统判定为「浪费能量」，迅速抹除。`,
+            `主动制造相关性：阅读前连问四个问题——「如何应用？」「与已知何物相连？」「最简本质是什么？」「我缺了哪块前置拼图？」。`,
+            `一旦通过高阶编码把新知识嵌入已有先验网络，遗忘曲线变平，可直接砍掉大半冗余复习次数。`
+          ]
+        },
+        earnPrompt: {
+          id: `earn-m2-relevance`,
+          question: `思考阻尼测试：为什么很多学生考前突击背了 100 张闪卡，成绩却在题目稍微绕个弯时崩盘？「高编码+少复习」与「低编码+高频间隔重复」有何本质不同？`,
+          hint: `提示：思考「水桶漏水（Leaky Bucket）」比喻——不堵住桶底的洞，倒再多水也是徒劳`
+        },
+        l2: {
+          caption: `编码质量决定遗忘曲线斜率：堵住漏水桶 vs 反复补水`,
+          svg: `<svg viewBox="0 0 560 205" style="width:100%;height:auto;display:block;" role="img" aria-label="高阶编码与低阶重复的遗忘曲线对比">
+            <line x1="50" y1="170" x2="520" y2="170" stroke="var(--on-surface)" stroke-width="1.5"/>
+            <line x1="50" y1="25" x2="50" y2="170" stroke="var(--on-surface)" stroke-width="1.5"/>
+            <text x="20" y="34" font-size="11" fill="var(--on-surface-variant)">留存率</text>
+            <text x="515" y="188" text-anchor="end" font-size="11" fill="var(--on-surface-variant)">时间推移（天/周）</text>
+
+            <!-- Low encoding steep drop + frantic sawtooth -->
+            <path d="M 55 36 Q 90 140, 145 156 L 150 55 Q 190 142, 240 156 L 245 65 Q 290 142, 340 156" fill="none" stroke="var(--error)" stroke-width="2" stroke-dasharray="4 3"/>
+            <text x="245" y="166" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--error-text)">低阶死背：陡峭坠落 → 被迫高频反复刷卡</text>
+
+            <!-- High-order encoding flat curve -->
+            <path d="M 55 36 C 140 50, 260 66, 505 78" fill="none" stroke="var(--primary)" stroke-width="3.5"/>
+            <circle cx="505" cy="78" r="5" fill="var(--primary)"/>
+            <text x="380" y="54" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--primary)">高阶 Schema 编码：遗忘曲线极度平缓</text>
+            <text x="380" y="98" text-anchor="middle" font-size="10.5" fill="var(--on-primary-container)">几乎无需机械重读，仅需针对性检索缺口</text>
+          </svg>`,
+          points: [
+            `<strong>游戏史迁移案例：</strong> 玩过三国策略游戏的人读汉末历史极其轻松，因为每个地名和人物都挂靠在「游戏里被弓箭手射惨的那个据点」这一浓厚先验锚点上。`,
+            `<strong>主动反问四连击：</strong> 1. 这个信息能用来解决什么现实问题？ 2. 它和已知的哪个机制冲突或相似？ 3. 用一句大白话怎么讲？ 4. 看不懂是因为缺了哪块前置知识？`
+          ]
+        },
+        l3: {
+          theory: `神经生物学上的小鼠恐惧记忆蛋白合成阻断实验（Memory Engram 印迹研究）表明：看似「遗忘」的记忆并非物理消逝，用光遗传学激光重新激活当初编码的神经元集群，行为记忆仍能重现——遗忘常常只是「检索通路断联」。通过多维度关系网络编码，等于为同一记忆铺设了数十条交叉检索高速公路。`,
+          citation: `来源参考：Dr. Justin Sung《How to Read Once and Remember Forever - The Memory Ladder framework》及《The PROBLEM with Active Recall and Spaced Repetition》。`
+        },
+        prompts: [
+          {
+            title: `前置拼图探测器（我缺了什么前置知识？）`,
+            rule: `用途：当遇到完全无法挂载到已有网络的抽象概念时，定位缺失的底层桥梁`,
+            good: true,
+            text: `我在理解【{{TOPIC}}】时感到极度抽象、毫无头绪。我目前的背景知识是：[简述你最熟悉的领域，如游戏/做菜/基础编程]。请先不要直接解释主题本身，而是告诉我：要让它变得直观，我缺少了哪 2 个最关键的「前置锚点概念」？并试着用我熟悉领域的机制做个结构类比（只做结构映射，保留推理过程让我自己验证）。`
+          }
+        ]
+      },
+      {
+        id: `m3-keywords`,
+        module: `M3 · AI 协同工作流`,
+        shortLabel: `M3.1 关键词跳板与学习指南`,
+        title: `Workflow 01 & 02：3 分钟提取 50 个无序关键词 + NotebookLM 学习指南模式`,
+        ring: 3,
+        coords: { x: 155, y: 148 },
+        l1: {
+          summary: `核心结论：<strong>让 AI 在 30 秒内做完原本需要 1 小时的「打字抽词备料」，但把「分组、排序、连接、答题」的控制权死死握在自己手里。</strong>`,
+          bullets: [
+            `<strong>3 分钟 50 关键词跳板：</strong> 读一本 300 页专业书前，先让 LLM 提取 40–50 个打乱顺序的纯关键词，自己动手花 15 分钟将其分进 2–4 个大框。`,
+            `<strong>NotebookLM 隐藏开关：</strong> 务必进入对话设置，手动勾选 <code>Learning Guide（学习指南）</code> 模式，禁止它直接吐答案，逼它向你提问。`,
+            `<strong>Google 图片流图法：</strong> 对复杂机理，直接搜专业流程图对比多个版本的结构差异，视觉空间处理速度远高于纯文字。`
+          ]
+        },
+        earnPrompt: {
+          id: `earn-m3-keywords`,
+          question: `思考阻尼测试：为什么 Justin 认为「让 ChatGPT 提取关键词列表」是他最推荐的 AI 用法，而「让 ChatGPT 把这 50 个词按逻辑排成大纲」则是灾难的开始？`,
+          hint: `提示：思考「准备工作（Preparation）」与「图式建构（Schema Formation）」在认知收益上的天壤之别`
+        },
+        l2: {
+          caption: `合规 AI 协同五步流：AI 只负责「备料」与「挑刺」，人类负责「烹调」`,
+          svg: `<svg viewBox="0 0 560 200" style="width:100%;height:auto;display:block;" role="img" aria-label="AI 协同五步实战工作流图">
+            <rect x="14" y="34" width="96" height="90" rx="6" fill="var(--amber-soft)" stroke="var(--amber)" stroke-width="1.5"/>
+            <text x="62" y="56" text-anchor="middle" font-size="11" font-weight="700" fill="var(--tertiary)">STEP 1 · AI</text>
+            <text x="62" y="76" text-anchor="middle" font-size="11.5" font-weight="700">提 50 关键词</text>
+            <text x="62" y="96" text-anchor="middle" font-size="10" fill="var(--on-surface-variant)">打乱顺序</text>
+            <text x="62" y="110" text-anchor="middle" font-size="10" fill="var(--on-surface-variant)">去除层级</text>
+
+            <line x1="110" y1="79" x2="128" y2="79" stroke="var(--on-surface)" stroke-width="2"/>
+
+            <rect x="130" y="24" width="122" height="110" rx="6" fill="var(--primary-container)" stroke="var(--primary)" stroke-width="2.5"/>
+            <text x="191" y="48" text-anchor="middle" font-size="11" font-weight="700" fill="var(--on-primary-container)">STEP 2 · 人类</text>
+            <text x="191" y="70" text-anchor="middle" font-size="12" font-weight="700">手绘初版组块</text>
+            <text x="191" y="90" text-anchor="middle" font-size="10.5" fill="var(--on-primary-container)">强迫 2-4 归类</text>
+            <text x="191" y="108" text-anchor="middle" font-size="10.5" fill="var(--on-primary-container)">猜想因果权重</text>
+
+            <line x1="252" y1="79" x2="270" y2="79" stroke="var(--on-surface)" stroke-width="2"/>
+
+            <rect x="272" y="34" width="122" height="90" rx="6" fill="var(--amber-soft)" stroke="var(--amber)" stroke-width="1.5"/>
+            <text x="333" y="56" text-anchor="middle" font-size="11" font-weight="700" fill="var(--tertiary)">STEP 3 · AI</text>
+            <text x="333" y="76" text-anchor="middle" font-size="11.5" font-weight="700">学习指南反问</text>
+            <text x="333" y="96" text-anchor="middle" font-size="10" fill="var(--on-surface-variant)">NotebookLM</text>
+            <text x="333" y="110" text-anchor="middle" font-size="10" fill="var(--on-surface-variant)">Learning Guide ON</text>
+
+            <line x1="394" y1="79" x2="412" y2="79" stroke="var(--on-surface)" stroke-width="2"/>
+
+            <rect x="414" y="24" width="132" height="110" rx="6" fill="var(--secondary-container)" stroke="var(--secondary)" stroke-width="2.2"/>
+            <text x="480" y="48" text-anchor="middle" font-size="11" font-weight="700" fill="var(--secondary)">STEP 4 · 闭环</text>
+            <text x="480" y="70" text-anchor="middle" font-size="12" font-weight="700">查漏补缺与重构</text>
+            <text x="480" y="90" text-anchor="middle" font-size="10.5" fill="var(--secondary)">套索重排导图</text>
+            <text x="480" y="108" text-anchor="middle" font-size="10.5" fill="var(--secondary)">建立永久资产</text>
+
+            <text x="280" y="172" text-anchor="middle" font-size="11" font-weight="600" fill="var(--primary)">关键规则：Step 2 绝不能被 AI 替代，否则 Step 3/4 全部沦为表面表演</text>
+          </svg>`,
+          points: [
+            `<strong>为什么必须「无序」：</strong> 只要 AI 给的清单带有「一、二、三」层级或缩进，你的大脑就会偷懒沿用它的分类视角，错失自己探索逻辑张力的黄金训练。`,
+            `<strong>NotebookLM 实测忠告：</strong> 它的移动版和音频播客非常适合「已有笔记本的碎片时间回温」，但如果用于全新高难度学科的从零建构，AI 跳过的细节会让初学者甚至不知道自己没听懂什么。`
+          ]
+        },
+        l3: {
+          theory: `在自我调节学习（Self-Regulated Learning, SRL）研究中，生成效应（Generation Effect）表明：自己主动产生答案或组织结构（即便初期有错），其记忆留存率远超被动阅读正确结构。这解释了为何 NotebookLM 默认「直接给答案」效用偏低，而开启「Learning Guide」强制交互提问后效果显著跃升。`,
+          citation: `来源参考：Dr. Justin Sung《How to Learn FASTER With AI - Google NotebookLM》《Private Workshop - How to Learn Anything Faster》及《Give me 28 Minutes, And I'll Make You Learn Anything Dangerously Fast》。`
+        },
+        prompts: [
+          {
+            title: `3 分钟 50 个无序关键词跳板（去层级版）`,
+            rule: `合规使用：节省翻书抄词的 45 分钟，把精力全留给手动分组`,
+            good: true,
+            text: `我正准备深入学习【{{TOPIC}}】（或随附的资料/书目）。请为我提取覆盖该领域核心骨架与关键机制的 40 个核心关键词或短语。严格要求：1）全部打乱随机排列，绝对不要分章节、不要加编号、不要做树状归类；2）不要附带解释。我要亲自把它们分类绘制成组块地图。`
+          },
+          {
+            title: `强制苏格拉底反问（模拟 Learning Guide 模式）`,
+            rule: `合规使用：禁止 AI 直接给完整方案，逼自己暴露盲区`,
+            good: true,
+            text: `接下来的对话中，请开启「Learning Guide 学习导师模式」与我讨论【{{TOPIC}}】。规则：无论我问什么，绝不要一次性倾倒长篇解释或标准答案。每次只针对我目前的阐述提出 1 个最尖锐的对比问题或边界反例，迫使我用自己的话推导出机制后，再给出反馈。`
+          }
+        ]
+      },
+      {
+        id: `m3-sounding`,
+        module: `M3 · 回音壁与加压训练`,
+        shortLabel: `M3.2 回音壁审计与刻意增重`,
+        title: `Workflow 03 & 04：用 AI 做盲区回音壁（Sounding Board）与刻意过载训练`,
+        ring: 3,
+        coords: { x: 118, y: 158 },
+        l1: {
+          summary: `核心结论：<strong>别让 AI 当你的「代笔老师」，要把它变成「冷酷的学术审稿人」和「健身房加磅教练」。</strong>`,
+          bullets: [
+            `<strong>Sounding Board 盲区审计：</strong> 先把自己的想法和网络逻辑发给 AI，让它专门找「缺失视角、隐藏假设、反向论点（Anti-thesis）」。`,
+            `<strong>Anti-Comfort 刻意过载训练：</strong> 故意命令 AI「不要简化、不要比喻，用高密度专家术语输出」，在安全环境里锤炼自己拆解复杂信息的能力。`,
+            `<strong>反脆弱认知（Anti-Fragile）：</strong> 就像写书章节或做高管战略，AI 只能作为事前风险推演（Pre-mortem）的压测工具。`
+          ]
+        },
+        earnPrompt: {
+          id: `earn-m3-sounding`,
+          question: `思考阻尼测试：为什么 Justin 在用 ChatGPT 辅助撰写 Springer 学术专著章节时，花了两小时让 AI 代写最终却彻底放弃，转而改用「对抗式回音壁」后效率立刻飙升？`,
+          hint: `提示：思考 LLM 基于「概率预测」生成文本的本质，与人类「情境化高阶判断」之间的鸿沟`
+        },
+        l2: {
+          caption: `抗脆弱思维双环：Anti-Thesis 逆向反驳 + Deliberate Overload 刻意增重`,
+          svg: `<svg viewBox="0 0 560 190" style="width:100%;height:auto;display:block;" role="img" aria-label="AI回音壁与刻意增重训练流程图">
+            <rect x="20" y="55" width="145" height="75" rx="6" fill="var(--primary-container)" stroke="var(--primary)" stroke-width="2"/>
+            <text x="92" y="84" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--on-primary-container)">我的初版假设 (Thesis)</text>
+            <text x="92" y="106" text-anchor="middle" font-size="10.5" fill="var(--on-primary-container)">已画出的组块关联与结论</text>
+
+            <path d="M 165 75 C 225 32, 325 32, 385 75" fill="none" stroke="var(--amber)" stroke-width="2.5"/>
+            <rect x="215" y="18" width="130" height="32" rx="4" fill="var(--amber-soft)" stroke="var(--amber)"/>
+            <text x="280" y="38" text-anchor="middle" font-size="11" font-weight="700" fill="var(--tertiary)">AI 攻击：提出 Anti-Thesis</text>
+
+            <rect x="385" y="55" width="155" height="75" rx="6" fill="var(--secondary-container)" stroke="var(--secondary)" stroke-width="2"/>
+            <text x="462" y="84" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--secondary)">升级后高阶洞察</text>
+            <text x="462" y="106" text-anchor="middle" font-size="10.5" fill="var(--secondary)">附带边界条件与失效前提</text>
+
+            <path d="M 385 112 C 325 155, 225 155, 165 112" fill="none" stroke="var(--primary)" stroke-width="2" stroke-dasharray="5 3"/>
+            <text x="275" y="162" text-anchor="middle" font-size="11" font-weight="600" fill="var(--on-surface-variant)">主动陈述「什么情况下我的结论会失效」= 专家级认知弹性</text>
+          </svg>`,
+          points: [
+            `<strong>展现高阶思维的表达 Habit：</strong> 真正聪明的人不仅说「我建议 A 方案」，还会主动补充 Anti-thesis：「但在出现 X、Y、Z 三个条件时，该方案必须推迟或反转。」`,
+            `<strong>健身房加磅训练：</strong> 如果你发现一遇到长难句或复杂英文文献就想丢给 AI 翻译简化，每天划出 15 分钟故意不准简化，硬啃原始复杂度来锻炼前额叶耐受度。`
+          ]
+        },
+        l3: {
+          theory: `Nassim Taleb 的《反脆弱（Antifragile）》概念被 Dr. Sung 迁移为「抗舒适模型（Anti-Comfort Model）」：脆弱的系统在压力与混沌中崩溃，强韧的系统维持原状，而反脆弱的大脑只在信息乱流、不确定性与认知冲突中不断升级神经连接。`,
+          citation: `来源参考：Dr. Justin Sung《How To Think Like The Top 1%》《5 Thinking Habits That Make You Look Smarter》及《My System For Learning Any Skill Without Wasting Time》。`
+        },
+        prompts: [
+          {
+            title: `Sounding Board · 盲区与反向论点压力测试`,
+            rule: `用途：自己先写出框架后，让 AI 充当魔鬼代言人寻找漏洞`,
+            good: true,
+            text: `以下是我对【{{TOPIC}}】自行构建的核心因果框架与结论：[粘贴你的理解]。请作为该领域的资深批评家进行「Pre-mortem 事前验尸」：1）我遗漏了哪个关键外部变量或分支？2）提出 3 个最可能推翻我当前结论的反例（Anti-thesis）与失效边界条件。`
+          },
+          {
+            title: `刻意过载训练（禁止简化 · 锻炼脑力耐受）`,
+            rule: `用途：故意制造高密度信息，训练自己的提纯拆解肌肉`,
+            good: false,
+            text: `请针对【{{TOPIC}}】内部最容易产生学术争议或工程权衡的底层矛盾，用高阶专业级深度写一段约 400 字的硬核剖析。严格禁止使用通俗比喻、禁止分点简化、保留全部专业变量关联——我想亲自练习从中提取 L1/L2 逻辑骨架。`
+          }
+        ]
+      }
+    ];
+
+    const BOUNDARY_PRESETS = {
+      task: { complexity: 22, retention: 18 },
+      commute: { complexity: 42, retention: 48 },
+      core: { complexity: 82, retention: 88 },
+      exam: { complexity: 74, retention: 90 }
+    };
+
+    const CASES = {
+      julian: {
+        kicker: `CASE 01 · 初创公司非技术岗毕业生`,
+        title: `Julian：跨界突击 AI 技术的「看懂却用不出」症候群`,
+        context: `刚毕业进入 AI 初创公司的 Julian 没有任何技术背景，面对日新月异的模型架构与工程文档感到极大焦虑。他的旧流程是：看资料前让 AI 总结大纲，边看边记线性文档，接着照教程搭小 Demo。虽然表面能跑通代码，但一旦客户需求变化或出现复杂系统 Bug，他完全不知道从何下手。`,
+        beforeMetric: `看似高效推进 · 解决新问题能力 = 极低`,
+        afterMetric: `建立需求导向网络 · 复杂推理自如`,
+        beforeDiag: `<strong>临床诊断：</strong> 用 AI 替代了「建立全局图式」的过程；且以「被动消费教程」为主，缺乏针对真实业务场景的「定向求索（Seeking）」。`,
+        afterRx: `<strong>临床处方：</strong> 停止用 AI 总结取代编码！改为先用关键词草图自己画全景架构，针对手头要解决的产品需求反向检索技术机制，最后才用 AI 做盲区核查。`,
+        beforeSvg: `<svg viewBox="0 0 380 215" style="width:100%;height:auto;display:block;" role="img" aria-label="Julian错误线性笔记">
+          <rect x="12" y="12" width="356" height="190" rx="6" fill="var(--background)" stroke="var(--outline-variant)"/>
+          <text x="26" y="34" font-size="11.5" font-weight="700" fill="var(--on-surface)">AI学习线性文档.md（被动搬运流）</text>
+          <line x1="24" y1="42" x2="356" y2="42" stroke="var(--outline-variant)"/>
+          <text x="26" y="62" font-size="11" fill="var(--on-surface-variant)">1. 让 ChatGPT 总结什么是 LLM 与 RAG...</text>
+          <text x="26" y="84" font-size="11" fill="var(--on-surface-variant)">2. 复制完整解释：向量数据库是用来存嵌入的...</text>
+          <text x="26" y="106" font-size="11" fill="var(--on-surface-variant)">3. 照着教程第1步到第10步敲完代码 Demo</text>
+          <text x="26" y="128" font-size="11" fill="var(--on-surface-variant)">4. 又出现新工具 LangGraph → 继续让 AI 总结</text>
+          <g class="case-anno">
+            <rect x="24" y="144" width="332" height="44" rx="4" fill="var(--error-soft)" stroke="var(--error)"/>
+            <text x="34" y="163" font-size="10.5" font-weight="700" fill="var(--error-text)">症状 1：仅获得「借来的清晰度」，底层机制空心化</text>
+            <text x="34" y="179" font-size="10.5" fill="var(--error-text)">症状 2：没有业务锚点，学完即忘，陷入追新恐慌</text>
+          </g>
+        </svg>`,
+        afterSvg: `<svg viewBox="0 0 380 215" style="width:100%;height:auto;display:block;" role="img" aria-label="Julian重构后高阶网络图">
+          <rect x="12" y="12" width="356" height="190" rx="6" fill="var(--background)" stroke="var(--primary)"/>
+          <rect x="122" y="24" width="136" height="30" rx="5" fill="var(--primary-container)" stroke="var(--primary)"/>
+          <text x="190" y="43" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--on-primary-container)">公司业务检索准确率问题</text>
+          <line x1="155" y1="54" x2="95" y2="86" stroke="var(--primary)" stroke-width="2.5"/>
+          <line x1="225" y1="54" x2="285" y2="86" stroke="var(--secondary)" stroke-width="2.5"/>
+          <rect x="30" y="86" width="128" height="44" rx="4" fill="var(--surface-container-low)" stroke="var(--primary)"/>
+          <text x="94" y="105" text-anchor="middle" font-size="11" font-weight="700">检索瓶颈（RAG）</text>
+          <text x="94" y="121" text-anchor="middle" font-size="9.5" fill="var(--on-surface-variant)">分块粒度 vs 语义损失</text>
+          <rect x="222" y="86" width="128" height="44" rx="4" fill="var(--surface-container-low)" stroke="var(--secondary)"/>
+          <text x="286" y="105" text-anchor="middle" font-size="11" font-weight="700">推理约束（LLM）</text>
+          <text x="286" y="121" text-anchor="middle" font-size="9.5" fill="var(--on-surface-variant)">上下文窗口 vs 幻觉率</text>
+          <line x1="158" y1="108" x2="222" y2="108" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 2"/>
+          <g class="case-anno">
+            <rect x="24" y="146" width="332" height="42" rx="4" fill="var(--primary-container)" stroke="var(--primary)"/>
+            <text x="34" y="165" font-size="10.5" font-weight="700" fill="var(--on-primary-container)">重构亮点：由业务问题驱动「Seeking」，节点间权衡替代死记</text>
+            <text x="34" y="180" font-size="10.5" fill="var(--on-primary-container)">AI 仅在最后一步用于检查「是否漏掉微调方案分支」</text>
+          </g>
+        </svg>`,
+        earnPrompt: {
+          id: `earn-case-julian`,
+          question: `案例诊断小测：Julian 最大的认知转折点是什么？为什么「为了完成公司具体任务去学」比「按教程从头学完 AI 基础」记忆强得多？`,
+          hint: `提示：结合 M2「相关性锚点」与「高阶应用反向拉动」思考`
+        }
+      },
+      surgeon: {
+        kicker: `CASE 02 · 十年执业外科住院医师`,
+        title: `外科住院医：改用高阶编码后惊呼「我觉得自己变慢了，是不是在退步？」`,
+        context: `一位行医近十年、曾一次未过高级外科专科大考的医师，在工作极度繁忙的情况下接受 Justin 辅导。执行新系统两周时看似顺利，第三周却突然发来焦急邮件：「我觉得很不对劲！以前我一天能过完一整个章节，现在盯着一页纸想半天，进度慢得可怕，我是不是越学越差了？」`,
+        beforeMetric: `首轮刷书极快 · 但需重学 5–6 轮`,
+        afterMetric: `首轮耗时 ×2 · 总时间暴跌 60%+`,
+        beforeDiag: `<strong>临床诊断：</strong> 混淆了「表层阅读速度」与「真实学习效率（True Learning Efficiency）」。以前快速翻过章节看似进度条飞涨，但其实毫无编码，考前被迫反复重学五六次。`,
+        afterRx: `<strong>临床处方：</strong> 纠正度量衡！在编码阶段故意降速、花精力建立深度解剖与病理联结，虽然「每小时翻页数」变少，但「单位时间获得的永久性掌握」呈指数级暴增。`,
+        beforeSvg: `<svg viewBox="0 0 380 215" style="width:100%;height:auto;display:block;" role="img" aria-label="外科医师旧效率陷阱">
+          <rect x="12" y="12" width="356" height="190" rx="6" fill="var(--background)" stroke="var(--outline-variant)"/>
+          <text x="26" y="34" font-size="11.5" font-weight="700" fill="var(--error-text)">伪效率循环：用「翻页速度」欺骗大脑</text>
+          <rect x="26" y="50" width="95" height="36" rx="4" fill="var(--surface-container-low)" stroke="var(--outline)"/>
+          <text x="73" y="72" text-anchor="middle" font-size="11">1小时刷 30 页</text>
+          <line x1="121" y1="68" x2="144" y2="68" stroke="var(--error)" stroke-width="2"/>
+          <rect x="146" y="50" width="95" height="36" rx="4" fill="var(--error-soft)" stroke="var(--error)"/>
+          <text x="193" y="72" text-anchor="middle" font-size="11" fill="var(--error-text)">3天后忘光 80%</text>
+          <line x1="241" y1="68" x2="264" y2="68" stroke="var(--error)" stroke-width="2"/>
+          <rect x="266" y="50" width="90" height="36" rx="4" fill="var(--surface-container-low)" stroke="var(--outline)"/>
+          <text x="311" y="72" text-anchor="middle" font-size="11">重学第 2/3/4 遍</text>
+          <path d="M 311 86 C 311 122, 73 122, 73 86" fill="none" stroke="var(--error)" stroke-width="2" stroke-dasharray="4 3"/>
+          <g class="case-anno">
+            <rect x="24" y="142" width="332" height="46" rx="4" fill="var(--error-soft)" stroke="var(--error)"/>
+            <text x="34" y="161" font-size="10.5" font-weight="700" fill="var(--error-text)">症状：总耗时 = 1h × 6轮复习，却误以为自己「学得很快」</text>
+            <text x="34" y="177" font-size="10.5" fill="var(--error-text)">考场高压下难以跨系统综合鉴别诊断</text>
+          </g>
+        </svg>`,
+        afterSvg: `<svg viewBox="0 0 380 215" style="width:100%;height:auto;display:block;" role="img" aria-label="外科医师高阶效率模型">
+          <rect x="12" y="12" width="356" height="190" rx="6" fill="var(--background)" stroke="var(--primary)"/>
+          <text x="26" y="34" font-size="11.5" font-weight="700" fill="var(--primary)">真实效率：前置投入「合意困难」，直接终结重复翻书</text>
+          <rect x="26" y="52" width="150" height="58" rx="5" fill="var(--primary-container)" stroke="var(--primary)" stroke-width="2"/>
+          <text x="101" y="74" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--on-primary-container)">2小时精研核心机制</text>
+          <text x="101" y="94" text-anchor="middle" font-size="10" fill="var(--on-primary-container)">（主观感受极慢、微痛）</text>
+          <line x1="176" y1="81" x2="214" y2="81" stroke="var(--primary)" stroke-width="3"/>
+          <rect x="216" y="52" width="138" height="58" rx="5" fill="var(--surface-container-low)" stroke="var(--primary)"/>
+          <text x="285" y="74" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--primary)">仅需 20 分钟微调复习</text>
+          <text x="285" y="94" text-anchor="middle" font-size="10" fill="var(--on-surface-variant)">临床术式联想一触即发</text>
+          <g class="case-anno">
+            <rect x="24" y="142" width="332" height="46" rx="4" fill="var(--primary-container)" stroke="var(--primary)"/>
+            <text x="34" y="161" font-size="10.5" font-weight="700" fill="var(--on-primary-container)">蜕变结果：总耗时骤降一半以上，最终顺利通过专科考核</text>
+            <text x="34" y="177" font-size="10.5" fill="var(--on-primary-container)">法则：感到卡顿和慢，往往意味着你正走在真正的快车道上</text>
+          </g>
+        </svg>`,
+        earnPrompt: {
+          id: `earn-case-surgeon`,
+          question: `案例诊断小测：当你在学习新技能时突然感到「进度变慢、脑子发胀」，如何判断这是「方法做对了的良性信号」，还是「真的走错了路」？`,
+          hint: `提示：用「闭卷输出与迁移能力」而非「阅读流畅感」作为唯一验收尺`
+        }
+      },
+      ed: {
+        kicker: `CASE 03 · 急诊科培训医生`,
+        title: `急诊科医生：打破「疯狂刷题库」导致的知识偏见（Knowledge Bias）`,
+        context: `面对解剖、生理、药理、病理四大基础科目大考，传统医学生建议都是「狂刷题库 + 背 Anki」。但这位急诊科培训生发现自己根本背不进孤立事实，而且做题时总漏掉特定类型的题目——因为日常急诊接诊形成的惯性思维，让他系统性地忽视了某些基础机制。`,
+        beforeMetric: `刷题千道 · 遇少见机制即失分`,
+        afterMetric: `精准区分 Gap 与 Bias · 系统补漏`,
+        beforeDiag: `<strong>临床诊断：</strong> 混淆了「知识缺口（Knowledge Gap：单纯没见过）」与「知识偏见（Knowledge Bias：信息收集视角本身存在系统性盲区）」。靠刷题只能碰运气覆盖题干。`,
+        afterRx: `<strong>临床处方：</strong> 告别就题论题。将病理与药理拉回「人体系统生理因果网络」，每轮自检记录错误主题趋势（例如总是忽略特定细胞遗传标记），跨器官系统横向迁移修正偏见。`,
+        beforeSvg: `<svg viewBox="0 0 380 215" style="width:100%;height:auto;display:block;" role="img" aria-label="急诊医生孤立刷题陷阱">
+          <rect x="12" y="12" width="356" height="190" rx="6" fill="var(--background)" stroke="var(--outline-variant)"/>
+          <text x="26" y="34" font-size="11.5" font-weight="700">题海驱动法（零散打补丁）</text>
+          <rect x="26" y="48" width="98" height="32" rx="4" fill="var(--surface-container-low)" stroke="var(--outline)"/>
+          <text x="75" y="68" text-anchor="middle" font-size="10.5">刷选择题 #412</text>
+          <rect x="140" y="48" width="98" height="32" rx="4" fill="var(--surface-container-low)" stroke="var(--outline)"/>
+          <text x="189" y="68" text-anchor="middle" font-size="10.5">刷选择题 #413</text>
+          <rect x="254" y="48" width="98" height="32" rx="4" fill="var(--surface-container-low)" stroke="var(--outline)"/>
+          <text x="303" y="68" text-anchor="middle" font-size="10.5">背单条错题解析</text>
+          <text x="190" y="108" text-anchor="middle" font-size="11" fill="var(--error-text)">题目条件微调 → 立刻无法关联不同器官系统</text>
+          <g class="case-anno">
+            <rect x="24" y="138" width="332" height="50" rx="4" fill="var(--error-soft)" stroke="var(--error)"/>
+            <text x="34" y="157" font-size="10.5" font-weight="700" fill="var(--error-text)">症状：受日常急诊经验挟持，产生系统性「知识偏见」</text>
+            <text x="34" y="174" font-size="10.5" fill="var(--error-text)">只记住了高频症状，忽视底层病理细胞与药物作用靶点</text>
+          </g>
+        </svg>`,
+        afterSvg: `<svg viewBox="0 0 380 215" style="width:100%;height:auto;display:block;" role="img" aria-label="急诊医生跨系统校准网络">
+          <rect x="12" y="12" width="356" height="190" rx="6" fill="var(--background)" stroke="var(--primary)"/>
+          <rect x="105" y="24" width="170" height="30" rx="5" fill="var(--secondary-container)" stroke="var(--secondary)"/>
+          <text x="190" y="43" text-anchor="middle" font-size="11" font-weight="700" fill="var(--secondary)">跨系统校准：病理机制 + 细胞标记</text>
+          <line x1="145" y1="54" x2="90" y2="82" stroke="var(--primary)" stroke-width="2.5"/>
+          <line x1="235" y1="54" x2="290" y2="82" stroke="var(--primary)" stroke-width="2.5"/>
+          <rect x="30" y="82" width="120" height="40" rx="4" fill="var(--surface-container-low)" stroke="var(--primary)"/>
+          <text x="90" y="106" text-anchor="middle" font-size="10.5" font-weight="600">腹部系统应用</text>
+          <rect x="230" y="82" width="120" height="40" rx="4" fill="var(--surface-container-low)" stroke="var(--primary)"/>
+          <text x="290" y="106" text-anchor="middle" font-size="10.5" font-weight="600">妇产/多学科迁移</text>
+          <line x1="150" y1="102" x2="230" y2="102" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 2"/>
+          <g class="case-anno">
+            <rect x="24" y="138" width="332" height="50" rx="4" fill="var(--primary-container)" stroke="var(--primary)"/>
+            <text x="34" y="157" font-size="10.5" font-weight="700" fill="var(--on-primary-container)">处方亮点：追查错题背后的「Bias 趋势」并跨学科校准</text>
+            <text x="34" y="174" font-size="10.5" fill="var(--on-primary-container)">只有真属于 L4 零碎数值才交由闪卡收尾</text>
+          </g>
+        </svg>`,
+        earnPrompt: {
+          id: `earn-case-ed`,
+          question: `案例诊断小测：在你的工作或学习中，「知识缺口（没学过）」和「知识偏见（看问题的角度习惯性遗漏某类关键因素）」哪一个更隐蔽？你该如何主动抓出自己的 Bias？`,
+          hint: `提示：回顾近 5 次失误，看看它们是否反复指向同一个忽略维度`
+        }
+      },
+      ceo: {
+        kicker: `CASE 04 · 企业高管 / CEO`,
+        title: `CEO 实战：20 分钟逆序扫描，将 500 页专著压缩进单页 Chunk Map`,
+        context: `企业高管通常没有大块时间逐字啃完 500 页商业或管理专著。传统听书或从第 1 页线性精读到第 500 页，往往在读完后只记住几句鸡汤故事，无法在董事会上用极简、完整且精准的逻辑向高管团队阐述整个体系。`,
+        beforeMetric: `耗时 15 小时精读 · 难以统筹全局`,
+        afterMetric: `20 分钟搭建骨架 · 5岁小孩都能听懂`,
+        beforeDiag: `<strong>临床诊断：</strong> 陷入「Order Control（顺序控制欲）」，总想顺着作者目录章节顺序读，大脑在读前 100 页时根本不知道这些概念在全书占有多大权重。`,
+        afterRx: `<strong>临床处方：</strong> 先花 20 分钟倒序/跳跃扫读全书标题、粗体和图表，列出完全无序的关键词表，再将其收束进一张「单分支 ≤4、零交叉」的单页组块图，在细读前先拿下全局控制权。`,
+        beforeSvg: `<svg viewBox="0 0 380 215" style="width:100%;height:auto;display:block;" role="img" aria-label="线性读500页书困境">
+          <rect x="12" y="12" width="356" height="190" rx="6" fill="var(--background)" stroke="var(--outline-variant)"/>
+          <text x="26" y="34" font-size="11.5" font-weight="700">传统第1章→第18章线性瀑布读法</text>
+          <rect x="26" y="48" width="66" height="58" rx="3" fill="var(--surface-container-low)" stroke="var(--outline)"/>
+          <text x="59" y="80" text-anchor="middle" font-size="10.5">Ch.1 引言</text>
+          <line x1="92" y1="77" x2="108" y2="77" stroke="var(--on-surface-variant)"/>
+          <rect x="110" y="48" width="66" height="58" rx="3" fill="var(--surface-container-low)" stroke="var(--outline)"/>
+          <text x="143" y="80" text-anchor="middle" font-size="10.5">Ch.2 案例</text>
+          <line x1="176" y1="77" x2="192" y2="77" stroke="var(--on-surface-variant)"/>
+          <rect x="194" y="48" width="66" height="58" rx="3" fill="var(--surface-container-low)" stroke="var(--outline)"/>
+          <text x="227" y="80" text-anchor="middle" font-size="10.5">Ch.3 理论</text>
+          <line x1="260" y1="77" x2="276" y2="77" stroke="var(--on-surface-variant)"/>
+          <rect x="278" y="48" width="76" height="58" rx="3" fill="var(--surface-container)" stroke="var(--outline-variant)" stroke-dasharray="3 2"/>
+          <text x="316" y="80" text-anchor="middle" font-size="10.5" fill="var(--on-surface-variant)">Ch.4–18...</text>
+          <g class="case-anno">
+            <rect x="24" y="138" width="332" height="50" rx="4" fill="var(--error-soft)" stroke="var(--error)"/>
+            <text x="34" y="157" font-size="10.5" font-weight="700" fill="var(--error-text)">症状：读完第3章已忘记第1章；全书重要关系被拆散在不同章节</text>
+            <text x="34" y="174" font-size="10.5" fill="var(--error-text)">开会发言时只能复述零散金句，缺乏完整策略视角</text>
+          </g>
+        </svg>`,
+        afterSvg: `<svg viewBox="0 0 380 215" style="width:100%;height:auto;display:block;" role="img" aria-label="CEO单页500页Chunk Map">
+          <rect x="12" y="12" width="356" height="190" rx="6" fill="var(--background)" stroke="var(--primary)"/>
+          <text x="26" y="34" font-size="11.5" font-weight="700" fill="var(--primary)">500页单页 Chunk Map（无交叉 · 每点 ≤4 分支）</text>
+          <rect x="135" y="46" width="110" height="28" rx="4" fill="var(--primary-container)" stroke="var(--primary)"/>
+          <text x="190" y="64" text-anchor="middle" font-size="11" font-weight="700">全书底层第一性原理</text>
+          <line x1="160" y1="74" x2="72" y2="94" stroke="var(--primary)" stroke-width="2.5"/>
+          <line x1="190" y1="74" x2="190" y2="94" stroke="var(--secondary)" stroke-width="2.2"/>
+          <line x1="220" y1="74" x2="308" y2="94" stroke="var(--amber)" stroke-width="2"/>
+          <rect x="26" y="94" width="92" height="32" rx="4" fill="var(--surface-container-low)" stroke="var(--primary)"/>
+          <text x="72" y="114" text-anchor="middle" font-size="10.5" font-weight="700">核心支柱 1</text>
+          <rect x="144" y="94" width="92" height="32" rx="4" fill="var(--surface-container-low)" stroke="var(--secondary)"/>
+          <text x="190" y="114" text-anchor="middle" font-size="10.5" font-weight="700">核心支柱 2</text>
+          <rect x="262" y="94" width="92" height="32" rx="4" fill="var(--surface-container-low)" stroke="var(--amber)"/>
+          <text x="308" y="114" text-anchor="middle" font-size="10.5" font-weight="700">执行约束 3</text>
+          <g class="case-anno">
+            <rect x="24" y="138" width="332" height="50" rx="4" fill="var(--primary-container)" stroke="var(--primary)"/>
+            <text x="34" y="157" font-size="10.5" font-weight="700" fill="var(--on-primary-container)">蜕变：20 分钟完成全书映射，用「费曼级简明精度」给团队赋值</text>
+            <text x="34" y="174" font-size="10.5" fill="var(--on-primary-container)">随后只需带着明确疑问挑着精读关键章节即可</text>
+          </g>
+        </svg>`,
+        earnPrompt: {
+          id: `earn-case-ceo`,
+          question: `案例诊断小测：为什么「能够全面、精准地向 5 岁小孩讲清一件事」是最高阶掌握的检验标准，而不仅仅是「用简单词汇糊弄过去」？`,
+          hint: `提示：思考「简约（Simplicity）」与「完整性/精准度（Comprehensiveness & Accuracy）」之间的张力`
+        }
+      }
+    };
+
+    /* =========================================================
+       2. APPLICATION STATE
+       ========================================================= */
+    let appState = {
+      heroNode: `core`,
+      symptom: `ai-overload`,
+      dimensions: {
+        processing: 4,
+        regulation: 5,
+        mindset: 3,
+        management: 6,
+        retrieval: 5
+      },
+      activeTopicId: `m1-bypass`,
+      activeLayer: `l1`,
+      customTopic: `Transformer 注意力机制 / 心衰药理学`,
+      unlockedEarns: {},
+      reflections: {},
+      boundarySim: { complexity: 22, retention: 18, preset: `task` },
+      activeCaseId: `julian`,
+      showCaseAnnotations: true
+    };
+
+    function persistState() {
+      if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === 'function') {
+        window.notebookAppApi.setAppState(appState);
+      }
+      updateProgressHeader();
+    }
+
+    function updateProgressHeader() {
+      const el = document.getElementById('progress-status');
+      if (!el) return;
+      const count = Object.keys(appState.unlockedEarns).filter(function(k) { return appState.unlockedEarns[k]; }).length;
+      const total = 6;
+      const avg = Math.round((
+        appState.dimensions.processing +
+        appState.dimensions.regulation +
+        appState.dimensions.mindset +
+        appState.dimensions.management +
+        appState.dimensions.retrieval
+      ) * 2);
+      el.textContent = `已解锁思考节点 ${count} / ${total} · 综合认知指数 ${avg}/100`;
+    }
+
+    /* =========================================================
+       3. NAVIGATION & HERO CHUNK MAP
+       ========================================================= */
+    function scrollToSection(id, btn) {
+      const target = document.getElementById(id);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      if (btn) {
+        const navBtns = document.querySelectorAll('.nav-btn');
+        navBtns.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+      }
+    }
+
+    function selectHeroNode(nodeId) {
+      const data = HERO_NODES[nodeId];
+      if (!data) return;
+      appState.heroNode = nodeId;
+
+      const allNodes = document.querySelectorAll('.chunk-node');
+      allNodes.forEach(function(n) { n.classList.remove('active'); });
+      const activeNode = document.getElementById('hero-node-' + nodeId);
+      if (activeNode) activeNode.classList.add('active');
+
+      const tagEl = document.getElementById('hero-node-tag');
+      const titleEl = document.getElementById('hero-node-title');
+      const descEl = document.getElementById('hero-node-desc');
+      if (tagEl) tagEl.textContent = data.tag;
+      if (titleEl) titleEl.textContent = data.title;
+      if (descEl) descEl.textContent = data.desc;
+
+      persistState();
+    }
+
+    function jumpFromHero() {
+      const data = HERO_NODES[appState.heroNode];
+      if (!data) return;
+      if (data.topicId) {
+        selectModuleTopic(data.topicId);
+      }
+      scrollToSection(data.target);
+    }
+
+    /* =========================================================
+       4. DIAGNOSTIC HUB (RADAR + PRESCRIPTION)
+       ========================================================= */
+    function selectSymptom(symId) {
+      if (!SYMPTOMS[symId]) return;
+      appState.symptom = symId;
+      ['ai-overload', 'illusion', 'linear'].forEach(function(id) {
+        const b = document.getElementById('sym-' + id);
+        if (b) {
+          if (id === symId) b.classList.add('active');
+          else b.classList.remove('active');
+        }
+      });
+      renderDiagnosticOutput();
+      persistState();
+    }
+
+    function updateDimension(key, rawVal) {
+      const val = parseInt(rawVal, 10) || 1;
+      appState.dimensions[key] = val;
+      const valEl = document.getElementById('val-' + key);
+      if (valEl) valEl.textContent = `${val} / 10`;
+      renderRadarChart();
+      renderDiagnosticOutput();
+      persistState();
+    }
+
+    function renderRadarChart() {
+      const svg = document.getElementById('radar-svg');
+      if (!svg) return;
+      const cx = 180;
+      const cy = 152;
+      const maxR = 100;
+      const dims = [
+        { key: 'processing', label: '深度处理' },
+        { key: 'regulation', label: '自我调节' },
+        { key: 'mindset', label: '合意困难心态' },
+        { key: 'management', label: '注意力管理' },
+        { key: 'retrieval', label: '高阶检索' }
+      ];
+
+      function polar(angleDeg, radius) {
+        const rad = (angleDeg - 90) * Math.PI / 180;
+        return {
+          x: (cx + radius * Math.cos(rad)).toFixed(1),
+          y: (cy + radius * Math.sin(rad)).toFixed(1)
+        };
+      }
+
+      let ringsHtml = '';
+      [0.25, 0.5, 0.75, 1.0].forEach(function(ratio) {
+        const pts = dims.map(function(_, i) {
+          const p = polar(i * 72, maxR * ratio);
+          return `${p.x},${p.y}`;
+        }).join(' ');
+        ringsHtml += `<polygon points="${pts}" fill="none" stroke="var(--outline-variant)" stroke-width="1"/>`;
+      });
+
+      let axesHtml = '';
+      let labelsHtml = '';
+      dims.forEach(function(d, i) {
+        const outer = polar(i * 72, maxR);
+        const lblPos = polar(i * 72, maxR + 24);
+        axesHtml += `<line x1="${cx}" y1="${cy}" x2="${outer.x}" y2="${outer.y}" stroke="var(--outline-variant)" stroke-width="1"/>`;
+        labelsHtml += `<text x="${lblPos.x}" y="${lblPos.y}" text-anchor="middle" dominant-baseline="middle" font-size="11.5" font-weight="600" fill="var(--on-surface)">${d.label} (${appState.dimensions[d.key]})</text>`;
+      });
+
+      // Benchmark Top 1% polygon (level 8.5)
+      const benchPts = dims.map(function(_, i) {
+        const p = polar(i * 72, maxR * 0.85);
+        return `${p.x},${p.y}`;
+      }).join(' ');
+
+      // User polygon
+      const userPts = dims.map(function(d, i) {
+        const p = polar(i * 72, maxR * (appState.dimensions[d.key] / 10));
+        return `${p.x},${p.y}`;
+      }).join(' ');
+
+      let dotsHtml = '';
+      dims.forEach(function(d, i) {
+        const p = polar(i * 72, maxR * (appState.dimensions[d.key] / 10));
+        dotsHtml += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--primary)" stroke="var(--surface-container-low)" stroke-width="1.5"/>`;
+      });
+
+      svg.innerHTML = `
+        ${ringsHtml}
+        ${axesHtml}
+        <polygon points="${benchPts}" fill="none" stroke="var(--amber)" stroke-width="1.6" stroke-dasharray="5 3"/>
+        <polygon points="${userPts}" fill="var(--primary-container)" fill-opacity="0.65" stroke="var(--primary)" stroke-width="2.5"/>
+        ${dotsHtml}
+        ${labelsHtml}
+      `;
+    }
+
+    function renderDiagnosticOutput() {
+      const sym = SYMPTOMS[appState.symptom];
+      if (!sym) return;
+
+      const d = appState.dimensions;
+      const entries = [
+        { k: 'processing', name: '深度处理编码', val: d.processing },
+        { k: 'regulation', name: '自我调节与盲区校准', val: d.regulation },
+        { k: 'mindset', name: '合意困难承受力', val: d.mindset },
+        { k: 'management', name: '注意力阈值管理', val: d.management },
+        { k: 'retrieval', name: '高阶闭卷检索', val: d.retrieval }
+      ];
+      entries.sort(function(a, b) { return a.val - b.val; });
+      const weakest = entries[0];
+      const score = Math.round((d.processing + d.regulation + d.mindset + d.management + d.retrieval) * 2);
+
+      const badgeEl = document.getElementById('diag-score-badge');
+      const tagEl = document.getElementById('rx-limiter-tag');
+      const headEl = document.getElementById('rx-headline');
+      const bodyEl = document.getElementById('rx-body');
+      const boxEl = document.getElementById('prescription-box');
+      const stepsEl = document.getElementById('rx-steps-list');
+
+      if (badgeEl) badgeEl.textContent = `综合认知指数 ${score} / 100`;
+      if (tagEl) tagEl.textContent = `诊断结果：首要速率瓶颈 = ${weakest.name}（${weakest.val}/10）`;
+      if (headEl) headEl.textContent = sym.headline;
+      if (bodyEl) bodyEl.textContent = sym.body;
+      if (boxEl) {
+        if (weakest.val <= 4) boxEl.classList.add('alert-mode');
+        else boxEl.classList.remove('alert-mode');
+      }
+
+      if (stepsEl) {
+        stepsEl.innerHTML = sym.steps.map(function(st) {
+          if (st.action === 'selectTopic') {
+            return `<button type="button" class="rx-step-btn" onclick="selectModuleTopic('${st.topicId}'); scrollToSection('${st.section}');"><span>${st.label}</span><span>→</span></button>`;
+          } else if (st.action === 'selectCase') {
+            return `<button type="button" class="rx-step-btn" onclick="selectCase('${st.caseId}'); scrollToSection('${st.section}');"><span>${st.label}</span><span>→</span></button>`;
+          } else {
+            return `<button type="button" class="rx-step-btn" onclick="scrollToSection('${st.section}');"><span>${st.label}</span><span>→</span></button>`;
+          }
+        }).join('');
+      }
+    }
+
+    /* =========================================================
+       5. CONCENTRIC LAYERING 3-COLUMN STUDIO
+       ========================================================= */
+    function selectModuleTopic(topicId) {
+      const found = TOPICS.find(function(t) { return t.id === topicId; });
+      if (!found) return;
+      appState.activeTopicId = topicId;
+
+      // Update top overview cards highlight
+      const modPrefix = topicId.split('-')[0];
+      ['m1', 'm2', 'm3'].forEach(function(m) {
+        const card = document.getElementById('mod-card-' + m);
+        if (card) {
+          if (m === modPrefix) card.classList.add('active');
+          else card.classList.remove('active');
+        }
+      });
+
+      renderLayeringStudio();
+      persistState();
+    }
+
+    function setLayerView(layerKey) {
+      appState.activeLayer = layerKey;
+      ['l1', 'l2', 'l3', 'all'].forEach(function(k) {
+        const btn = document.getElementById('tab-' + k);
+        if (btn) {
+          if (k === layerKey) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+      });
+      renderLayerContent();
+      renderMinimap();
+      persistState();
+    }
+
+    function updateCustomTopic(val) {
+      appState.customTopic = val;
+      renderPromptSidebar();
+      persistState();
+    }
+
+    function unlockEarn(earnId) {
+      const inputEl = document.getElementById('input-' + earnId);
+      if (inputEl) {
+        appState.reflections[earnId] = inputEl.value.trim();
+      }
+      appState.unlockedEarns[earnId] = true;
+      renderLayerContent();
+      if (document.getElementById('case-earn-container')) {
+        renderCaseEarn();
+      }
+      persistState();
+    }
+
+    function saveReflection(earnId, val) {
+      appState.reflections[earnId] = val;
+      persistState();
+    }
+
+    function renderLayeringStudio() {
+      const topic = TOPICS.find(function(t) { return t.id === appState.activeTopicId; }) || TOPICS[0];
+      const kickerEl = document.getElementById('active-topic-kicker');
+      const titleEl = document.getElementById('active-topic-title');
+      if (kickerEl) kickerEl.textContent = `${topic.module} · 同心圆精读节点`;
+      if (titleEl) titleEl.textContent = topic.title;
+
+      // Render left topic list
+      const listEl = document.getElementById('topic-anchor-list');
+      if (listEl) {
+        listEl.innerHTML = TOPICS.map(function(t) {
+          const activeCls = t.id === topic.id ? 'active' : '';
+          return `
+            <button type="button" class="topic-anchor-btn ${activeCls}" onclick="selectModuleTopic('${t.id}')">
+              <span class="topic-tag">${t.module}</span>
+              <span>${t.shortLabel}</span>
+            </button>
+          `;
+        }).join('');
+      }
+
+      renderMinimap();
+      renderLayerContent();
+      renderPromptSidebar();
+    }
+
+    function renderMinimap() {
+      const svg = document.getElementById('minimap-svg');
+      if (!svg) return;
+      const topic = TOPICS.find(function(t) { return t.id === appState.activeTopicId; }) || TOPICS[0];
+      const activeL = appState.activeLayer;
+
+      const r1Stroke = activeL === 'l1' || activeL === 'all' ? 'var(--primary)' : 'var(--outline-variant)';
+      const r2Stroke = activeL === 'l2' || activeL === 'all' ? 'var(--secondary)' : 'var(--outline-variant)';
+      const r3Stroke = activeL === 'l3' || activeL === 'all' ? 'var(--amber)' : 'var(--outline-variant)';
+
+      const dots = TOPICS.map(function(t) {
+        const isCurrent = t.id === topic.id;
+        return `<circle cx="${t.coords.x}" cy="${t.coords.y}" r="${isCurrent ? 6.5 : 3.5}" fill="${isCurrent ? 'var(--primary)' : 'var(--on-surface-variant)'}" stroke="var(--surface-container-low)" stroke-width="1.5"/>`;
+      }).join('');
+
+      svg.innerHTML = `
+        <circle cx="110" cy="92" r="76" fill="none" stroke="${r3Stroke}" stroke-width="${activeL==='l3'?'2.5':'1.2'}" stroke-dasharray="4 3"/>
+        <circle cx="110" cy="92" r="52" fill="none" stroke="${r2Stroke}" stroke-width="${activeL==='l2'?'2.5':'1.2'}"/>
+        <circle cx="110" cy="92" r="28" fill="var(--primary-container)" fill-opacity="0.35" stroke="${r1Stroke}" stroke-width="${activeL==='l1'?'2.5':'1.5'}"/>
+        <text x="110" y="96" text-anchor="middle" font-size="10" font-weight="700" fill="var(--on-surface)">L1 骨架</text>
+        <text x="110" y="48" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--secondary)">L2 关系</text>
+        <text x="110" y="24" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--tertiary)">L3 机理与出处</text>
+        ${dots}
+      `;
+    }
+
+    function buildEarnCardHtml(earnObj) {
+      const savedText = appState.reflections[earnObj.id] || '';
+      const escapedVal = savedText.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `
+        <div class="earn-card">
+          <div class="earn-header">
+            <i data-lucide="lock" width="16" height="16"></i>
+            <span>EARN THE RESPONSE · 思考阻尼门控（先思考，再解锁深层图谱）</span>
+          </div>
+          <p class="earn-question">${earnObj.question}</p>
+          <p class="prose-muted" style="font-size: 0.85rem;">${earnObj.hint}</p>
+          <div class="field-group">
+            <label class="field-label" for="input-${earnObj.id}">写下你的 1 句话直觉推导（可选，将自动存入诊断报告）：</label>
+            <textarea id="input-${earnObj.id}" class="textarea-input" rows="2" placeholder="例如：因为只有大脑自己经历分类冲突，才会建立神经连接……" oninput="saveReflection('${earnObj.id}', this.value)">${escapedVal}</textarea>
+          </div>
+          <div>
+            <button type="button" class="btn btn-amber" onclick="unlockEarn('${earnObj.id}')">
+              <i data-lucide="unlock" width="16" height="16"></i> 我已独立思考，解锁 L2 / L3 深度内容
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLayerContent() {
+      const container = document.getElementById('layer-content-area');
+      if (!container) return;
+      const topic = TOPICS.find(function(t) { return t.id === appState.activeTopicId; }) || TOPICS[0];
+      const view = appState.activeLayer;
+      const unlocked = Boolean(appState.unlockedEarns[topic.earnPrompt.id]);
+
+      let html = '';
+
+      if (view === 'l1' || view === 'all') {
+        const bulletsHtml = topic.l1.bullets.map(function(b) {
+          return `<li>${b}</li>`;
+        }).join('');
+        html += `
+          <div class="layer-block l1">
+            <div class="layer-badge-row">
+              <span class="layer-kicker kicker-l1">L1 · 全景速览层（30 秒建立骨架）</span>
+              <span class="dossier-meta">先框定边界，绝不陷于词句</span>
+            </div>
+            <p class="prose">${topic.l1.summary}</p>
+            <ul style="margin: 0; padding-left: 1.25rem; display: grid; gap: 6px; color: var(--on-surface);">${bulletsHtml}</ul>
+          </div>
+        `;
+      }
+
+      if (view === 'l2' || view === 'l3' || view === 'all') {
+        if (!unlocked) {
+          html += buildEarnCardHtml(topic.earnPrompt);
+        } else {
+          if (view === 'l2' || view === 'all') {
+            const ptsHtml = topic.l2.points.map(function(p) {
+              return `<li>${p}</li>`;
+            }).join('');
+            html += `
+              <div class="layer-block l2">
+                <div class="layer-badge-row">
+                  <span class="layer-kicker kicker-l2">L2 · 逻辑关系与权重层（核心编码区）</span>
+                  <span class="dossier-meta" style="color: var(--primary);">已解锁 ✓</span>
+                </div>
+                <div style="font-weight: 600; font-size: 0.92rem; color: var(--secondary);">${topic.l2.caption}</div>
+                <div style="background: var(--surface-container-low); border: 1px solid var(--outline-variant); border-radius: var(--rounded); padding: var(--space-sm);">
+                  ${topic.l2.svg}
+                </div>
+                <ul style="margin: 0; padding-left: 1.25rem; display: grid; gap: 6px;">${ptsHtml}</ul>
+              </div>
+            `;
+          }
+          if (view === 'l3' || view === 'all') {
+            const noteSaved = appState.reflections[topic.earnPrompt.id];
+            const noteEcho = noteSaved ? `<div class="sketch-callout" style="padding: var(--space-sm) var(--space-md);"><span class="dossier-meta" style="color: var(--tertiary); font-weight: 700;">你的思考记录对比：</span><span style="font-size: 0.88rem;">${noteSaved.replace(/</g, '&lt;')}</span></div>` : '';
+            html += `
+              <div class="layer-block l3">
+                <div class="layer-badge-row">
+                  <span class="layer-kicker kicker-l3">L3 · 深度原理解析与科研实证出处</span>
+                  <span class="dossier-meta">Cognitive Science Grounding</span>
+                </div>
+                ${noteEcho}
+                <p class="prose">${topic.l3.theory}</p>
+                <div class="card-stone" style="font-size: 0.88rem; color: var(--on-surface-variant);">
+                  ${topic.l3.citation}
+                </div>
+              </div>
+            `;
+          }
+        }
+      }
+
+      container.innerHTML = html;
+      refreshLucideIcons();
+    }
+
+    function renderPromptSidebar() {
+      const listEl = document.getElementById('prompt-triggers-list');
+      if (!listEl) return;
+      const topic = TOPICS.find(function(t) { return t.id === appState.activeTopicId; }) || TOPICS[0];
+      const userTopic = (appState.customTopic || '').trim() || '当前学习主题';
+
+      listEl.innerHTML = topic.prompts.map(function(p, idx) {
+        const renderedPrompt = p.text.replace(/\{\{TOPIC\}\}/g, userTopic);
+        const safeId = `prompt-code-${topic.id}-${idx}`;
+        const ruleCls = p.good ? '' : 'danger';
+        return `
+          <div class="prompt-card">
+            <div style="font-weight: 700; font-size: 0.92rem;">${p.title}</div>
+            <div class="prompt-card-rule ${ruleCls}">${p.rule}</div>
+            <pre class="prompt-code" id="${safeId}">${renderedPrompt}</pre>
+            <button type="button" class="btn btn-secondary" style="width: 100%;" onclick="copyPromptText('${safeId}', this)">
+              <i data-lucide="copy" width="15" height="15"></i> 复制提示词模板
+            </button>
+          </div>
+        `;
+      }).join('');
+      refreshLucideIcons();
+    }
+
+    function copyPromptText(elId, btn) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      const text = el.textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          markCopied(btn);
+        }).catch(function() {
+          fallbackCopy(text, btn);
+        });
+      } else {
+        fallbackCopy(text, btn);
+      }
+    }
+
+    function fallbackCopy(text, btn) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      markCopied(btn);
+    }
+
+    function markCopied(btn) {
+      if (!btn) return;
+      const original = btn.innerHTML;
+      btn.textContent = '已复制到剪贴板 ✓';
+      btn.classList.add('btn-primary');
+      setTimeout(function() {
+        btn.innerHTML = original;
+        btn.classList.remove('btn-primary');
+        refreshLucideIcons();
+      }, 1600);
+    }
+
+    /* =========================================================
+       6. AI COMPLEXITY & RISK BOUNDARY SIMULATOR
+       ========================================================= */
+    function applyBoundaryPreset(presetKey) {
+      const preset = BOUNDARY_PRESETS[presetKey];
+      if (!preset) return;
+      appState.boundarySim = {
+        complexity: preset.complexity,
+        retention: preset.retention,
+        preset: presetKey
+      };
+      const cInput = document.getElementById('sim-complexity');
+      const rInput = document.getElementById('sim-retention');
+      if (cInput) cInput.value = preset.complexity;
+      if (rInput) rInput.value = preset.retention;
+
+      ['task', 'commute', 'core', 'exam'].forEach(function(k) {
+        const b = document.getElementById('pre-' + k);
+        if (b) {
+          if (k === presetKey) b.classList.add('active');
+          else b.classList.remove('active');
+        }
+      });
+
+      renderBoundaryCurve();
+      persistState();
+    }
+
+    function updateBoundarySim() {
+      const cInput = document.getElementById('sim-complexity');
+      const rInput = document.getElementById('sim-retention');
+      const complexity = cInput ? parseInt(cInput.value, 10) : 50;
+      const retention = rInput ? parseInt(rInput.value, 10) : 50;
+      appState.boundarySim = { complexity: complexity, retention: retention, preset: 'custom' };
+
+      ['task', 'commute', 'core', 'exam'].forEach(function(k) {
+        const b = document.getElementById('pre-' + k);
+        if (b) b.classList.remove('active');
+      });
+
+      renderBoundaryCurve();
+      persistState();
+    }
+
+    function renderBoundaryCurve() {
+      const c = appState.boundarySim.complexity;
+      const r = appState.boundarySim.retention;
+      const valCEl = document.getElementById('val-sim-complexity');
+      const valREl = document.getElementById('val-sim-retention');
+      if (valCEl) valCEl.textContent = `${c}%`;
+      if (valREl) valREl.textContent = `${r}%`;
+
+      const svg = document.getElementById('boundary-curve-svg');
+      if (!svg) return;
+
+      // Map complexity (0..100) to X (60..560), retention (0..100) to Y (240..30)
+      const px = 60 + (c / 100) * 500;
+      const py = 240 - (r / 100) * 210;
+      const riskScore = (c * 0.52 + r * 0.48);
+
+      svg.innerHTML = `
+        <!-- Danger Zone upper-right -->
+        <path d="M 60 240 L 60 110 C 220 110, 320 185, 560 240 Z" fill="var(--primary-container)" fill-opacity="0.45"/>
+        <path d="M 60 110 C 220 110, 320 185, 560 240 L 560 30 L 60 30 Z" fill="var(--error-soft)" fill-opacity="0.48"/>
+        <!-- Axes -->
+        <line x1="60" y1="240" x2="565" y2="240" stroke="var(--on-surface)" stroke-width="1.5"/>
+        <line x1="60" y1="25" x2="60" y2="240" stroke="var(--on-surface)" stroke-width="1.5"/>
+        <!-- Boundary Curve -->
+        <path d="M 60 110 C 220 110, 320 185, 560 240" fill="none" stroke="var(--amber)" stroke-width="2.5" stroke-dasharray="6 4"/>
+        <text x="125" y="218" font-size="11.5" font-weight="700" fill="var(--on-primary-container)">安全提速区（Task-Reactive）</text>
+        <text x="410" y="62" text-anchor="middle" font-size="12" font-weight="700" fill="var(--error-text)">认知绕过危险区（高复杂度 × 高留存）</text>
+        <text x="410" y="80" text-anchor="middle" font-size="10.5" fill="var(--error-text)">禁令：禁止让 AI 代写摘要或整理图式</text>
+        <text x="310" y="266" text-anchor="middle" font-size="11" fill="var(--on-surface-variant)">概念复杂度与跨节点关联度 →</text>
+        <text x="20" y="135" text-anchor="middle" transform="rotate(-90 20 135)" font-size="11" fill="var(--on-surface-variant)">长期迁移需求 →</text>
+        <!-- Current point -->
+        <line x1="${px.toFixed(1)}" y1="240" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="var(--outline-variant)" stroke-dasharray="3 2"/>
+        <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="8" fill="${riskScore > 55 ? 'var(--error)' : 'var(--primary)'}" stroke="var(--surface-container-low)" stroke-width="2.5"/>
+      `;
+
+      const pill = document.getElementById('sim-verdict-pill');
+      const box = document.getElementById('sim-verdict-box');
+      const title = document.getElementById('sim-verdict-title');
+      const desc = document.getElementById('sim-verdict-desc');
+
+      if (riskScore > 62) {
+        if (pill) { pill.textContent = '警报：高认知退化风险'; pill.className = 'dossier-pill'; pill.style.background = 'var(--error)'; pill.style.color = 'var(--on-error)'; }
+        if (box) box.classList.add('alert-mode');
+        if (title) title.textContent = `禁止认知外包：必须亲自完成 L1/L2 编码`;
+        if (desc) desc.textContent = `当前任务复杂度与未来应用风险双高。此时让 AI 生成现成笔记会直接毁掉真实掌握。AI 只能用于提取无序关键词（前期）或充当反驳审稿人（后期）。`;
+      } else if (riskScore > 38) {
+        if (pill) { pill.textContent = '评估：审慎协同区'; pill.className = 'dossier-pill amber'; pill.style.background = ''; pill.style.color = ''; }
+        if (box) box.classList.remove('alert-mode');
+        if (title) title.textContent = `半协同模式：开启 NotebookLM 学习指南或自测`;
+        if (desc) desc.textContent = `处于中等复杂度或复习巩固区间。可利用 AI 生成多维反问或场景演练，但每次交互都要强迫自己先说出判断再核对。`;
+      } else {
+        if (pill) { pill.textContent = '评估：安全提速区'; pill.className = 'dossier-pill teal'; pill.style.background = ''; pill.style.color = ''; }
+        if (box) box.classList.remove('alert-mode');
+        if (title) title.textContent = `Task-Reactive（任务响应式）：放心交给 AI 提速`;
+        if (desc) desc.textContent = `此任务低复杂度且无需长期内化为你的专业直觉。大胆用 LLM 快速交付结果，把宝贵的注意力额度留给真正的深水区攻坚。`;
+      }
+    }
+
+    /* =========================================================
+       7. CASE CLINIC & AUDIT
+       ========================================================= */
+    function selectCase(caseId) {
+      if (!CASES[caseId]) return;
+      appState.activeCaseId = caseId;
+      ['julian', 'surgeon', 'ed', 'ceo'].forEach(function(id) {
+        const b = document.getElementById('case-btn-' + id);
+        if (b) {
+          if (id === caseId) b.classList.add('active');
+          else b.classList.remove('active');
+        }
+      });
+      renderCaseView();
+      persistState();
+    }
+
+    function toggleCaseAnnotations() {
+      appState.showCaseAnnotations = !appState.showCaseAnnotations;
+      renderCaseView();
+      persistState();
+    }
+
+    function renderCaseView() {
+      const c = CASES[appState.activeCaseId] || CASES.julian;
+      const kickerEl = document.getElementById('case-kicker');
+      const titleEl = document.getElementById('case-title');
+      const ctxEl = document.getElementById('case-context');
+      const bMetricEl = document.getElementById('before-metric');
+      const aMetricEl = document.getElementById('after-metric');
+      const bSvgEl = document.getElementById('case-before-svg');
+      const aSvgEl = document.getElementById('case-after-svg');
+      const bDiagEl = document.getElementById('case-before-diag');
+      const aRxEl = document.getElementById('case-after-rx');
+      const annoBtn = document.getElementById('toggle-annotations-btn');
+
+      if (kickerEl) kickerEl.textContent = c.kicker;
+      if (titleEl) titleEl.textContent = c.title;
+      if (ctxEl) ctxEl.textContent = c.context;
+      if (bMetricEl) bMetricEl.textContent = c.beforeMetric;
+      if (aMetricEl) aMetricEl.textContent = c.afterMetric;
+      if (bSvgEl) bSvgEl.innerHTML = c.beforeSvg;
+      if (aSvgEl) aSvgEl.innerHTML = c.afterSvg;
+      if (bDiagEl) bDiagEl.innerHTML = c.beforeDiag;
+      if (aRxEl) aRxEl.innerHTML = c.afterRx;
+
+      const annos = document.querySelectorAll('.case-anno');
+      annos.forEach(function(el) {
+        el.style.display = appState.showCaseAnnotations ? '' : 'none';
+      });
+      if (annoBtn) {
+        annoBtn.innerHTML = appState.showCaseAnnotations
+          ? `<i data-lucide="eye" width="16" height="16"></i> 隐藏诊断症状标注`
+          : `<i data-lucide="eye-off" width="16" height="16"></i> 显示诊断症状标注`;
+      }
+
+      renderCaseEarn();
+      refreshLucideIcons();
+    }
+
+    function renderCaseEarn() {
+      const c = CASES[appState.activeCaseId] || CASES.julian;
+      const container = document.getElementById('case-earn-container');
+      if (!container) return;
+      const unlocked = Boolean(appState.unlockedEarns[c.earnPrompt.id]);
+      if (!unlocked) {
+        container.innerHTML = buildEarnCardHtml(c.earnPrompt);
+      } else {
+        const saved = appState.reflections[c.earnPrompt.id] || '';
+        container.innerHTML = `
+          <div class="sketch-callout" style="border-color: var(--primary);">
+            <div class="dossier-meta" style="color: var(--primary); font-weight: 700;">病例临床洞察已解锁 ✓</div>
+            <p class="prose" style="margin-top: 4px; font-size: 0.94rem;">
+              <strong>Justin 教练复盘总结：</strong> 真正的高效率从来不是在旧方法上「加班内卷」，而是对学习系统做外科手术般的诊断：分清哪些步骤在消耗假时间（机械排版、被动听讲），哪些步骤在构建不可替代的神经资产（对比、权重判断与跨情境检索）。
+            </p>
+            ${saved ? `<p class="prose-muted" style="margin-top: 6px; font-size: 0.86rem;"><strong>你的临床思考：</strong> ${saved.replace(/</g, '&lt;')}</p>` : ''}
+          </div>
+        `;
+      }
+      refreshLucideIcons();
+    }
+
+    /* =========================================================
+       8. EXPORT & RESET (NO ALERT / CONFIRM)
+       ========================================================= */
+    function exportLearningDossier() {
+      const d = appState.dimensions;
+      const symTitle = (document.querySelector('#sym-' + appState.symptom + ' .symptom-title') || {}).textContent || appState.symptom;
+      const lines = [
+        `=== Dr. Justin Sung 非线性认知画布 · 个人诊断与思考报告 ===`,
+        `生成日期：2026-11-16`,
+        `自定义学习主题：${appState.customTopic}`,
+        ``,
+        `[一、临床学习问诊结果]`,
+        `- 主诉症状：${symTitle}`,
+        `- 五维能力自评：深度处理 ${d.processing}/10 | 自我调节 ${d.regulation}/10 | 合意困难心态 ${d.mindset}/10 | 注意力管理 ${d.management}/10 | 高阶检索 ${d.retrieval}/10`,
+        ``,
+        `[二、「挣得答案」个人思考推导记录]`
+      ];
+
+      const refKeys = Object.keys(appState.reflections);
+      if (refKeys.length === 0) {
+        lines.push(`（尚未填写思考阻尼卡片，建议在同心圆工作台或案例拆解室输入你的独立推导。）`);
+      } else {
+        refKeys.forEach(function(k) {
+          if (appState.reflections[k]) {
+            lines.push(`- 节点 [${k}]：${appState.reflections[k]}`);
+          }
+        });
+      }
+
+      const content = lines.join('\n');
+      if (window.notebookAppApi && typeof window.notebookAppApi.triggerFileDownload === 'function') {
+        window.notebookAppApi.triggerFileDownload({
+          content: content,
+          contentType: 'text/plain',
+          encoding: 'UTF-8',
+          filename: 'justin-sung-cognitive-dossier.txt'
+        });
+      }
+      const toast = document.getElementById('footer-toast');
+      if (toast) {
+        toast.textContent = '已触发诊断报告下载（justin-sung-cognitive-dossier.txt）。';
+        setTimeout(function() { toast.textContent = ''; }, 3000);
+      }
+    }
+
+    function resetWorkspace(btn) {
+      if (!btn) return;
+      if (btn.dataset.armed !== 'true') {
+        btn.dataset.armed = 'true';
+        btn.textContent = '再次点击确认重置全部进度';
+        setTimeout(function() {
+          if (btn.dataset.armed === 'true') {
+            btn.dataset.armed = 'false';
+            btn.innerHTML = `<i data-lucide="rotate-ccw" width="16" height="16"></i> 重置实验室状态`;
+            refreshLucideIcons();
+          }
+        }, 3500);
+        return;
+      }
+      btn.dataset.armed = 'false';
+      btn.innerHTML = `<i data-lucide="rotate-ccw" width="16" height="16"></i> 重置实验室状态`;
+
+      appState = {
+        heroNode: `core`,
+        symptom: `ai-overload`,
+        dimensions: { processing: 4, regulation: 5, mindset: 3, management: 6, retrieval: 5 },
+        activeTopicId: `m1-bypass`,
+        activeLayer: `l1`,
+        customTopic: `Transformer 注意力机制 / 心衰药理学`,
+        unlockedEarns: {},
+        reflections: {},
+        boundarySim: { complexity: 22, retention: 18, preset: `task` },
+        activeCaseId: `julian`,
+        showCaseAnnotations: true
+      };
+      hydrateUIFromState();
+      persistState();
+
+      const toast = document.getElementById('footer-toast');
+      if (toast) {
+        toast.textContent = '实验室诊断与解锁状态已重置。';
+        setTimeout(function() { toast.textContent = ''; }, 2500);
+      }
+    }
+
+    function refreshLucideIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    }
+
+    function hydrateUIFromState() {
+      selectHeroNode(appState.heroNode || 'core');
+
+      // Sync sliders
+      Object.keys(appState.dimensions).forEach(function(k) {
+        const inp = document.getElementById('dim-' + k);
+        const lbl = document.getElementById('val-' + k);
+        if (inp) inp.value = appState.dimensions[k];
+        if (lbl) lbl.textContent = `${appState.dimensions[k]} / 10`;
+      });
+
+      selectSymptom(appState.symptom || 'ai-overload');
+      renderRadarChart();
+
+      const topicInput = document.getElementById('custom-topic-input');
+      if (topicInput) topicInput.value = appState.customTopic || '';
+
+      selectModuleTopic(appState.activeTopicId || 'm1-bypass');
+      setLayerView(appState.activeLayer || 'l1');
+
+      const cInp = document.getElementById('sim-complexity');
+      const rInp = document.getElementById('sim-retention');
+      if (cInp) cInp.value = appState.boundarySim.complexity;
+      if (rInp) rInp.value = appState.boundarySim.retention;
+      renderBoundaryCurve();
+
+      selectCase(appState.activeCaseId || 'julian');
+      updateProgressHeader();
+      refreshLucideIcons();
+    }
+
+    async function initApp() {
+      try {
+        if (window.notebookAppApi && typeof window.notebookAppApi.getAppState === 'function') {
+          const saved = await window.notebookAppApi.getAppState();
+          if (saved && typeof saved === 'object') {
+            appState = Object.assign({}, appState, saved);
+          }
+        }
+      } catch (e) {
+        // Proceed with default state if shim unavailable
+      }
+
+      hydrateUIFromState();
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === 'function') {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
